@@ -1,0 +1,13 @@
+diff --git a/src/include/port/linux.h b/src/include/port/linux.h
+index 2ddb34d..20343e3 100644
+--- a/src/include/port/linux.h
++++ b/src/include/port/linux.h
+@@ -7,7 +7,7 @@
+ #define JMP_BUF
+ #define USE_POSIX_TIME
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ typedef unsigned char slock_t;
+ 
+ #define HAS_TEST_AND_SET

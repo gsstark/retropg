@@ -1,0 +1,12 @@
+diff --git a/src/interfaces/ecpg/preproc/preproc.y b/src/interfaces/ecpg/preproc/preproc.y
+index d94f2a7..5364573 100644
+--- a/src/interfaces/ecpg/preproc/preproc.y
++++ b/src/interfaces/ecpg/preproc/preproc.y
+@@ -379,7 +379,6 @@ make_name(void)
+ 
+ %type  <ival>	Iresult
+ 
+-%token YYERROR_VERBOSE
+ %%
+ prog: statements;
+ 

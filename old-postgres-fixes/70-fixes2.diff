@@ -1,0 +1,181 @@
+diff --git a/src/backend/storage/ipc/ipc.c b/src/backend/storage/ipc/ipc.c
+index a381f9d..5c76bfe 100644
+--- a/src/backend/storage/ipc/ipc.c
++++ b/src/backend/storage/ipc/ipc.c
+@@ -393,7 +393,6 @@ static int	IpcSemaphoreLock_return;
+ void
+ IpcSemaphoreLock(IpcSemaphoreId semId, int sem, int lock)
+ {
+-	extern int	errno;
+ 	int			errStatus;
+ 	struct sembuf sops;
+ 
+@@ -437,7 +436,6 @@ static int	IpcSemaphoreUnlock_return;
+ void
+ IpcSemaphoreUnlock(IpcSemaphoreId semId, int sem, int lock)
+ {
+-	extern int	errno;
+ 	int			errStatus;
+ 	struct sembuf sops;
+ 
+diff --git a/src/backend/utils/error/elog.c b/src/backend/utils/error/elog.c
+index 82da387..e1e00b6 100644
+--- a/src/backend/utils/error/elog.c
++++ b/src/backend/utils/error/elog.c
+@@ -37,8 +37,6 @@
+ #include "utils/trace.h"
+ #include "commands/copy.h"
+ 
+-extern int	errno;
+-extern int	sys_nerr;
+ 
+ extern CommandDest whereToSendOutput;
+ 
+diff --git a/src/backend/utils/error/exc.c b/src/backend/utils/error/exc.c
+index 374aa57..c5cfeed 100644
+--- a/src/backend/utils/error/exc.c
++++ b/src/backend/utils/error/exc.c
+@@ -100,8 +100,6 @@ ExcPrint(Exception *excP,
+ 		 ExcData data,
+ 		 ExcMessage message)
+ {
+-	extern int	errno;
+-	extern int	sys_nerr;
+ 
+ #ifdef	lint
+ 	data = data;
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index 7e2b0ab..c92795b 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -620,7 +620,7 @@ psql_completion(char *text, int start, int end)
+ 		)
+ 	{
+ #ifdef HAVE_FILENAME_COMPLETION_FUNCTION
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ #else
+ 
+ 		/*
+diff --git a/src/configure b/src/configure
+index 43598bc..cb3c0f2 100755
+--- a/src/configure
++++ b/src/configure
+@@ -1449,7 +1449,7 @@ fi
+ 
+ if test "$CC" = "gcc"
+ then
+-	CC_VERSION=`${CC} --version`
++	CC_VERSION=`${CC} --version | head -1`
+ else
+ 	CC_VERSION=""
+ fi
+@@ -1982,7 +1982,7 @@ fi
+ fi
+ 
+ if test "$LEX" = "flex"; then
+-        $LEX --version 2> /dev/null | grep -s '2\.5\.3' > /dev/null 2>&1
++        $LEX --version 2> /dev/null | grep -s '2\.5\.3$' > /dev/null 2>&1
+         if test $? -eq 0 ; then
+                 echo "configure: warning: 
+ ***
+diff --git a/src/include/c.h b/src/include/c.h
+index 43c9643..3419011 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -55,9 +55,7 @@
+ #include <stdarg.h>
+ #endif
+ 
+-#ifdef __CYGWIN32__
+ #include <errno.h>
+-#endif
+ 
+ /* ----------------------------------------------------------------
+  *				Section 1:	bool, true, false, TRUE, FALSE, NULL
+diff --git a/src/include/port/linux.h b/src/include/port/linux.h
+index 2ddb34d..20343e3 100644
+--- a/src/include/port/linux.h
++++ b/src/include/port/linux.h
+@@ -7,7 +7,7 @@
+ #define JMP_BUF
+ #define USE_POSIX_TIME
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ typedef unsigned char slock_t;
+ 
+ #define HAS_TEST_AND_SET
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index 0d16c55..1136e7c 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -214,10 +214,10 @@ typedef uint32 CommandId;
+ 	typedef struct CppConcat(FormData_,x)
+ 
+ /* Huh? */
+-#define DATA(x) extern int errno
+-#define DESCR(x) extern int errno
+-#define DECLARE_INDEX(x) extern int errno
+-#define DECLARE_UNIQUE_INDEX(x) extern int errno
++#define DATA(x) extern int no_such_variable
++#define DESCR(x) extern int no_such_variable
++#define DECLARE_INDEX(x) extern int no_such_variable
++#define DECLARE_UNIQUE_INDEX(x) extern int no_such_variable
+ 
+ #define BUILD_INDICES
+ #define BOOTSTRAP
+diff --git a/src/include/storage/s_lock.h b/src/include/storage/s_lock.h
+index fadd87e..31062db 100644
+--- a/src/include/storage/s_lock.h
++++ b/src/include/storage/s_lock.h
+@@ -80,7 +80,7 @@ extern void s_lock_sleep(unsigned spin);
+  */
+ 
+ 
+-#if defined(__i386__)
++#if defined(__i386__)||	defined(__x86_64__)
+ #define TAS(lock) tas(lock)
+ 
+ static __inline__ int
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index 5628e30..6d82257 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -19,8 +19,8 @@ extern char *connection;
+ extern char *input_filename;
+ extern char *yytext,
+ 			errortext[128];
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 
+diff --git a/src/pl/plpgsql/src/gram.y b/src/pl/plpgsql/src/gram.y
+index 0a435b5..aa2ad84 100644
+--- a/src/pl/plpgsql/src/gram.y
++++ b/src/pl/plpgsql/src/gram.y
+@@ -39,9 +39,11 @@
+ #include "stdio.h"
+ #include "string.h"
+ #include "plpgsql.h"
+-#ifdef YYBISON
++#if 0
+ #include "pl_scan.c" /* GNU bison wants it here */
+ #endif
++extern char yytext[];
++extern int yylineno;
+ 
+ 
+ 
+@@ -1083,7 +1085,7 @@ lno		:
+ 
+ %%
+ 
+-#ifndef YYBISON
++#if 1
+ #include "pl_scan.c" /* BSD yacc wants it here */
+ #endif
+ 

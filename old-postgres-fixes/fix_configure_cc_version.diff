@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index b0d3543..f4f571e 100755
+--- a/configure
++++ b/configure
+@@ -1617,7 +1617,7 @@ fi
+ 
+ # Create compiler version string
+ if test x"$GCC" = x"yes" ; then
+-  cc_string="GCC `${CC} --version`"
++  cc_string="GCC `${CC} --version | head -1`"
+ else
+   cc_string=$CC
+ fi

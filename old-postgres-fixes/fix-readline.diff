@@ -1,0 +1,13 @@
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index 7e2b0ab..c92795b 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -620,7 +620,7 @@ psql_completion(char *text, int start, int end)
+ 		)
+ 	{
+ #ifdef HAVE_FILENAME_COMPLETION_FUNCTION
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ #else
+ 
+ 		/*

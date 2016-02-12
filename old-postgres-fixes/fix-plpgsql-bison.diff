@@ -1,0 +1,26 @@
+diff --git a/src/pl/plpgsql/src/gram.y b/src/pl/plpgsql/src/gram.y
+index 1bfce18..65aa605 100644
+--- a/src/pl/plpgsql/src/gram.y
++++ b/src/pl/plpgsql/src/gram.y
+@@ -39,9 +39,11 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include "plpgsql.h"
+-#ifdef YYBISON
++#if 0
+ #include "pl_scan.c" /* GNU bison wants it here */
+ #endif
++extern char yytext[];
++extern int yylineno;
+ 
+ 
+ 
+@@ -1208,7 +1210,7 @@ lno				:
+ 
+ %%
+ 
+-#ifndef YYBISON
++#if 1
+ #include "pl_scan.c" /* BSD yacc wants it here */
+ #endif
+ 

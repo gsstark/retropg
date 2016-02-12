@@ -1,0 +1,48 @@
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index 7af72a7..204d9fb 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -573,10 +573,10 @@ extern int	assertTest(int val);
+ 	typedef struct CppConcat(FormData_,x)
+ 
+ /* Huh? */
+-#define DATA(x) extern int errno
+-#define DESCR(x) extern int errno
+-#define DECLARE_INDEX(x) extern int errno
+-#define DECLARE_UNIQUE_INDEX(x) extern int errno
++#define DATA(x) extern int no_such_variable
++#define DESCR(x) extern int no_such_variable
++#define DECLARE_INDEX(x) extern int no_such_variable
++#define DECLARE_UNIQUE_INDEX(x) extern int no_such_variable
+ 
+ #define BUILD_INDICES
+ #define BOOTSTRAP
+diff --git a/src/pl/plperl/ppport.h b/src/pl/plperl/ppport.h
+index be5f990..068acc0 100644
+--- a/src/pl/plperl/ppport.h
++++ b/src/pl/plperl/ppport.h
+@@ -177,11 +177,7 @@ __DATA__
+ #endif
+ 
+ #ifndef dTHR
+-#ifdef WIN32
+-#define dTHR extern int Perl___notused
+-#else
+-#define dTHR extern int errno
+-#endif
++#define dTHR extern int no_such_variable
+ #endif
+ 
+ #ifndef boolSV
+diff --git a/src/include/c.h b/src/include/c.h
+index 8bdb40a..fda5837 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -44,6 +44,7 @@
+    have its own.  The same goes for stddef and stdarg if present.
+ */
+ 
++#include <errno.h>
+ #include "config.h"
+ 
+ #include <stdio.h>

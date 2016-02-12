@@ -1,0 +1,168 @@
+diff --git a/src/backend/storage/ipc/ipc.c b/src/backend/storage/ipc/ipc.c
+index b9ec1d1..e84f2ff 100644
+--- a/src/backend/storage/ipc/ipc.c
++++ b/src/backend/storage/ipc/ipc.c
+@@ -438,7 +438,6 @@ static int	IpcSemaphoreLock_return;
+ void
+ IpcSemaphoreLock(IpcSemaphoreId semId, int sem, int lock)
+ {
+-	extern int	errno;
+ 	int			errStatus;
+ 	struct sembuf sops;
+ 
+@@ -482,7 +481,6 @@ static int	IpcSemaphoreUnlock_return;
+ void
+ IpcSemaphoreUnlock(IpcSemaphoreId semId, int sem, int lock)
+ {
+-	extern int	errno;
+ 	int			errStatus;
+ 	struct sembuf sops;
+ 
+diff --git a/src/backend/utils/error/elog.c b/src/backend/utils/error/elog.c
+index b2a44f3..2882f56 100644
+--- a/src/backend/utils/error/elog.c
++++ b/src/backend/utils/error/elog.c
+@@ -63,8 +63,6 @@ elog(int lev, const char *fmt,...)
+ 				line[ELOG_MAXLEN];
+ 	char	   *bp;
+ 	const char *cp;
+-	extern int	errno,
+-				sys_nerr;
+ 
+ #ifdef USE_SYSLOG
+ 	int			log_level;
+diff --git a/src/backend/utils/error/exc.c b/src/backend/utils/error/exc.c
+index 357dae1..777de6e 100644
+--- a/src/backend/utils/error/exc.c
++++ b/src/backend/utils/error/exc.c
+@@ -99,8 +99,6 @@ ExcPrint(Exception *excP,
+ 		 ExcData data,
+ 		 ExcMessage message)
+ {
+-	extern int	errno;
+-	extern int	sys_nerr;
+ 
+ #ifdef	lint
+ 	data = data;
+diff --git a/src/configure b/src/configure
+index ff57769..14d84cb 100755
+--- a/src/configure
++++ b/src/configure
+@@ -1401,7 +1401,7 @@ fi
+ 
+ if test "$CC" = "gcc"
+ then
+-	CC_VERSION=`${CC} --version`
++	CC_VERSION=`${CC} --version | head -1`
+ else
+ 	CC_VERSION=""
+ fi
+diff --git a/src/include/c.h b/src/include/c.h
+index 6eacebd..c401228 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -58,9 +58,7 @@
+ #include <stdarg.h>
+ #endif
+ 
+-#ifdef __CYGWIN32__
+ #include <errno.h>
+-#endif
+ 
+ /* ----------------------------------------------------------------
+  *				Section 1:	bool, true, false, TRUE, FALSE, NULL
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index 051d65c..b87aa0d 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -137,9 +137,9 @@ typedef uint32 CommandId;
+ #define CATALOG(x) \
+ 	typedef struct CppConcat(FormData_,x)
+ 
+-#define DATA(x) extern int errno
+-#define DESCR(x) extern int errno
+-#define DECLARE_INDEX(x) extern int errno
++#define DATA(x) extern int no_such_variable
++#define DESCR(x) extern int no_such_variable
++#define DECLARE_INDEX(x) extern int no_such_variable
+ 
+ #define BUILD_INDICES
+ #define BOOTSTRAP
+diff --git a/src/include/storage/s_lock.h b/src/include/storage/s_lock.h
+index 5a5cdc5..a6f7047 100644
+--- a/src/include/storage/s_lock.h
++++ b/src/include/storage/s_lock.h
+@@ -108,7 +108,7 @@ __asm__("    ldq   $0, %0              \n\
+ 
+ 
+ 
+-#if defined(__i386__)
++#if defined(__i386__)||	defined(__x86_64__)
+ #define TAS(lock) tas(lock)
+ 
+ static __inline__ int
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index 52a3896..deb5421 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -9,8 +9,8 @@ extern int	braces_open,
+ 			struct_level;
+ extern char *yytext,
+ 			errortext[128];
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 
+diff --git a/src/interfaces/ecpg/preproc/preproc.y b/src/interfaces/ecpg/preproc/preproc.y
+index 274d4b6..adf91ad 100644
+--- a/src/interfaces/ecpg/preproc/preproc.y
++++ b/src/interfaces/ecpg/preproc/preproc.y
+@@ -823,8 +823,8 @@ adjust_array(enum ECPGttype type_enum, int *dimension, int *length, int type_dim
+ %type  <str>	opt_cursor opt_lmode
+ %type  <str>	case_expr when_clause_list case_default case_arg when_clause
+ %type  <str>    select_clause opt_select_limit select_limit_value
+-%type  <str>    select_offset_value table_list using_expr join_expr
+-%type  <str>	using_list from_expr table_expr join_clause join_type
++%type  <str>    select_offset_value using_expr join_expr
++%type  <str>	using_list from_expr table_expr join_type
+ %type  <str>	join_qual update_list join_clause join_clause_with_union
+ %type  <str>	opt_level opt_lock lock_type
+ 
+@@ -841,7 +841,7 @@ adjust_array(enum ECPGttype type_enum, int *dimension, int *length, int type_dim
+ %type  <str>	enum_type civariableonly ECPGCursorStmt ECPGDeallocate
+ %type  <str>	ECPGFree ECPGDeclare ECPGVar sql_variable_declarations
+ %type  <str>	sql_declaration sql_variable_list sql_variable opt_at
+-%type  <str>    struct_type s_struct declaration variable_declarations
++%type  <str>    struct_type declaration variable_declarations
+ %type  <str>    s_struct s_union union_type ECPGSetAutocommit on_off
+ 
+ %type  <type_enum> simple_type varchar_type
+diff --git a/src/pl/plpgsql/src/gram.y b/src/pl/plpgsql/src/gram.y
+index 7291afd..1c296bb 100644
+--- a/src/pl/plpgsql/src/gram.y
++++ b/src/pl/plpgsql/src/gram.y
+@@ -40,9 +40,11 @@
+ #include "string.h"
+ #include "plpgsql.h"
+ 
+-#ifdef YYBISON
++#if 0
+ #include "pl_scan.c" /* GNU bison wants it here */
+ #endif
++extern char yytext[];
++extern int yylineno;
+ 
+ static	PLpgSQL_expr	*read_sqlstmt(int until, char *s, char *sqlstart);
+ static	PLpgSQL_stmt	*make_select_stmt(void);
+@@ -1082,7 +1084,7 @@ lno		:
+ 
+ %%
+ 
+-#ifndef YYBISON
++#if 1
+ #include "pl_scan.c" /* BSD yacc wants it here */
+ #endif
+ 

@@ -1,0 +1,26 @@
+diff --git a/src/backend/catalog/genbki.sh b/src/backend/catalog/genbki.sh
+index e9400f4..8580440 100644
+--- a/src/backend/catalog/genbki.sh
++++ b/src/backend/catalog/genbki.sh
+@@ -164,7 +164,7 @@ sed -e "s/;[ 	]*$//g" \
+     -e "s/[ 	]Oid/\ oid/g" \
+     -e "s/[ 	]NameData/\ name/g" \
+     -e "s/^Oid/oid/g" \
+-    -e "s/^NameData/\name/g" \
++    -e "s/^NameData/name/g" \
+     -e "s/(NameData/(name/g" \
+     -e "s/(Oid/(oid/g" \
+     -e "s/NAMEDATALEN/$NAMEDATALEN/g" \
+diff --git a/src/backend/catalog/genbki.sh.in b/src/backend/catalog/genbki.sh.in
+index 58ddcd5..bf2bdfb 100644
+--- a/src/backend/catalog/genbki.sh.in
++++ b/src/backend/catalog/genbki.sh.in
+@@ -86,7 +86,7 @@ sed -e "s/;[ 	]*$//g" \
+     -e "s/[ 	]Oid/\ oid/g" \
+     -e "s/[ 	]NameData/\ name/g" \
+     -e "s/^Oid/oid/g" \
+-    -e "s/^NameData/\name/g" \
++    -e "s/^NameData/name/g" \
+     -e "s/(NameData/(name/g" \
+     -e "s/(Oid/(oid/g" \
+     -e "s/NAMEDATALEN/$NAMEDATALEN/g" \

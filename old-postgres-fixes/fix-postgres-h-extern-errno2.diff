@@ -1,0 +1,27 @@
+diff --git a/src/include/c.h b/src/include/c.h
+index 5756aef..250d0f3 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -60,8 +60,8 @@
+ #include <strings.h>
+ #endif
+ 
+-#ifdef __CYGWIN__
+ #include <errno.h>
++#ifdef __CYGWIN__
+ #include <sys/fcntl.h>		/* ensure O_BINARY is available */
+ #endif
+ #ifdef HAVE_SUPPORTDEFS_H
+diff --git a/src/pl/plperl/ppport.h b/src/pl/plperl/ppport.h
+index 7a3c59f..3c82430 100644
+--- a/src/pl/plperl/ppport.h
++++ b/src/pl/plperl/ppport.h
+@@ -180,7 +180,7 @@ __DATA__
+ #  ifdef WIN32
+ #	define dTHR extern int Perl___notused
+ #  else
+-#	define dTHR extern int errno
++#	define dTHR extern int no_such_variable
+ #  endif
+ #endif
+ 

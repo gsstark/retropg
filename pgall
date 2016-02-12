@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+here="$(dirname "${BASH_SOURCE[0]}")"
+
+for d in /usr/local/pgsql-* ; do
+
+    bin="$d/bin"
+    binfallback="$d/../pgsql-REL7_3_21/bin"
+    rel="$(basename "$d")"
+    db="/var/tmp/d-$rel"
+    log="/var/tmp/l-$rel.log"
+    out="/var/tmp/o-$rel.out"
+
+    if [ ! -d $db ] ; then
+       echo "Running initdb for $rel"
+       $bin/initdb -D $db || continue
+    fi
+    trap "$bin/pg_ctl -D $db stop" EXIT
+    $bin/pg_ctl -D $db -l $log start
+    echo -n "Waiting for $rel to start up..."
+    for i in `seq 1 30` ; do
+	sleep 1
+    	$bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
+	echo -n .
+    done
+    echo done
+
+    if ! $bin/psql -o /dev/null -X -c 'select 1'; then
+       echo "Creating and initializing db for $rel"
+       $bin/createdb
+       $bin/psql -X -f $here/benchmark-setup.sql
+    fi
+#    $bin/psql -X -f $here/benchmark-fix.sql
+
+    if [[ "Xpgsql-REL7_3" < "X$rel" ]] ; then
+	psqlbin="$bin"
+    else
+	psqlbin="$binfallback"
+    fi
+
+    echo -n "Running Benchmark on $rel..."
+    TIMEFORMAT=%0lR
+    time ( $psqlbin/psql -X -f $here/benchmark-run.sql  >>$out 2>&1 )
+    unset TIMEFORMAT
+
+    $bin/pg_ctl -D $db stop -m fast
+
+done

@@ -1,0 +1,11 @@
+--- config.status~	2016-02-11 14:03:04.557385820 +0300
++++ config.status	2016-02-11 14:03:38.278234862 +0300
+@@ -59,7 +59,7 @@
+ /^[ 	]*VPATH[ 	]*=[^:]*$/d
+ 
+ s%@SHELL@%/bin/sh%g
+-s%@CFLAGS@%-O2%g
++s%@CFLAGS@%-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE%g
+ s%@CPPFLAGS@% %g
+ s%@CXXFLAGS@%-g -O2%g
+ s%@FFLAGS@%%g

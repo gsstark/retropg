@@ -1,0 +1,119 @@
+#!/bin/sh
+
+VERS_QUARTERS="REL7_0~949 REL7_0~243 REL7_1~2184 REL7_1~1748 REL7_1~943 REL7_1~45 REL7_2~1771 REL7_2~1060 REL7_2~226 REL7_3~1793 REL7_3~1268 REL7_3~366 REL7_4~2136 REL7_4~1629 REL7_4~1080 REL7_4~350 REL8_0_0~2683 REL8_0_0~2132 REL8_0_0~1539 REL8_0_0~839 REL8_0_0~130 REL8_1_0~1542 REL8_1_0~884 REL8_1_0~247 REL8_2_0~2042 REL8_2_0~1581 REL8_2_0~1012 REL8_2_0~332 REL8_3_0~2316 REL8_3_0~1603 REL8_3_0~1189 REL8_3_0~732 REL8_3_0~119 REL8_4_0~1907 REL8_4_0~1498 REL8_4_0~1218 REL8_4_0~775 REL8_4_0~360 REL9_0_0~1855 REL9_0_0~1542 REL9_0_0~1249 REL9_0_0~627 REL9_0_0~202 REL9_1_0~1695 REL9_1_0~1328 REL9_1_0~628 REL9_2_0~1825 REL9_2_0~1396 REL9_2_0~984 REL9_2_0~551 REL9_3_0~1509 REL9_3_0~1099 REL9_3_0~790 REL9_3_0~390 REL9_4_0~1894 REL9_4_0~1617 REL9_4_0~1246 REL9_4_0~744 REL9_5_0~2370 REL9_5_0~1996 REL9_5_0~1569 REL9_5_0~1100 REL9_5_ALPHA1-20-g7b156c1 REL9_5_ALPHA1-489-ge06b2e1 REL9_5_ALPHA1-844-gdfcd9cb REL9_5_ALPHA1-972-g7dc09c1"
+VERS_RELEASES="REL7_1_3 REL7_2_8 REL7_3_9 REL7_3_21 REL7_4_30 REL8_0_26 REL8_1_23 REL8_2_23 REL8_3_23 REL8_4_22 REL9_0_23 REL9_1_19 REL9_2_14 REL9_3_10 REL9_4_5 REL9_5_0"
+VERS_SLIDES="REL7_0~1309 REL7_0~1300 REL7_0~1297 REL8_2_0~1764 REL8_3_0~1344 REL8_3_0~1416 REL9_2_0~1071 REL9_2_0~771 REL9_3_0~735 REL9_4_0~1923 REL9_5_0~1488"
+
+VERS_SLIDES_BEFORE="REL7_0~1310 REL8_2_0~1765 REL8_3_0~1345 REL8_3_0~1417 REL9_2_0~1072 REL9_2_0~772 REL9_3_0~736 REL9_4_0~1924 REL9_5_0~1489"
+
+VERS="${VERS_SLIDES} ${VERS_RELEASES} ${VERS_QUARTERS}"
+
+#VERS="$(cat revs.quarters)"
+#VERS="6f64c2e54a0b14154a335249f4dca91a39c61c50 06c376605d82fffbe174d61d8b853de53f5f51a9 f6a51cfa919f22133a970fb8ae3bf42f7181ddcb 51cc51945e4cb3a9a114ab4e5c3cfa358311f27e 469ebeefd644e829facdb9fab2dc8b8a47352795 72ad5fe15c93fefa8debb0fc8ef5c85b560ffac7 3a94e789f5c9537d804210be3cb26f7fb08e3b9e"
+#VERS="REL7_0-771-g06c3766 REL7_0-775-g61234c1 REL7_0-784-g5ba666b"
+#VERS="REL7_1 REL7_1~1966  REL7_1~1867  REL7_1~1769 REL7_1~1706 REL7_1~1596  REL7_1~1451 REL7_1~1176 REL7_1~947 REL7_1~593 REL7_1~278"
+#VERS="REL7_1_3"
+#VERS="REL7_0_3"
+#VERS="REL7_1_3 REL7_2_8 REL7_3_9 REL7_3_21 REL7_4_30 REL8_0_26 REL8_1_23 REL8_2_23 REL8_3_23 REL8_4_22 REL9_0_23 REL9_1_19 REL9_2_14 REL9_3_10 REL9_4_5 REL9_5_0"
+#VERS="REL7_4_30 REL8_0_26 REL8_1_23 REL8_2_23 REL8_3_23"
+#VERS="26c48b5e8cffafaf3b8acf345ca9fd8a1e408a54 df700e6b40195d28dc764e0c694ac8cef90d4638 2415ad983174164ff30ce487c0e6b4b53321b83a c6e3ac11b60ac4a8942ab964252d51c1c0bd8845 337b6f5ecf05b21b5e997986884d097d60e4e3d0 8ae35e91807508872cabd3b0e8db35fc78e194ac 263865a48973767ce8ed7b7788059a38a24a9f37 4ea51cdfe85ceef8afabceb03c446574daa0ac23"
+#VERS3="REL7_2-3176-g78d2156 REL7_4_RC1-1422-g474875f REL8_0_0-947-g294505e REL8_1_0-1371-g9e196d7 REL8_3_0-1153-gf346a23 REL8_4_0-873-gef51fa5 REL9_1_ALPHA4-55-ga2eb9e0 REL9_3_BETA1-1457-g1a917ae REL9_5_ALPHA1-54-g3096ff9"
+
+OLDFIXES=/home/stark/src/old-postgres-fixes/
+TOPLEVEL=`pwd`
+
+for ver in $VERS; do
+    set -e
+    echo "Checking out $ver"
+    cd $TOPLEVEL
+    git reset --hard
+    git clean -x -d -f -q
+    git checkout "$ver"
+
+    describe="$(git describe --tags  --contains --match REL[0-9]_[0-9] 2>/dev/null || git describe --tags  --contains --match REL[0-9]_[0-9]_0 2>/dev/null || git describe --tags 2>/dev/null)"
+    gitdate="$(git log -n 1 --date=short  | awk '/^Date:/{print $2}')"
+    prefix="/usr/local/oldpgsql/$gitdate-$describe"
+    if [ -d "$prefix" ]; then
+       echo "Skipping already built $ver in $prefix"
+       continue
+    fi
+
+    set +e
+
+    if [ -f ./configure ] ; then
+	echo "Configuring $ver to install into $prefix"
+
+	echo "Attempting to fix broken test for flex 2.5.3"
+	patch -p1 < $OLDFIXES/flex-autoconf-fix.diff  || echo "Patch failed -- trying without"
+	echo "Attempting to fix broken test for gcc version"
+	patch -p1 < $OLDFIXES/fix_configure_cc_version.diff  || echo "Patch failed -- trying without"
+
+	export CFLAGS='-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE'
+	export YFLAGS='-Wnone'
+	./configure --prefix="$prefix" || ./configure  --host=i386-linux --with-template=linux --prefix="$prefix"
+	if [ $? -ne 0 ]; then
+	    echo "configure failed -- skipping $vers"
+	    continue
+	fi
+	
+	if grep 's%@CFLAGS@%-O2%g' config.status; then
+	    echo "Hacking and rerunning config.status"
+	    sed '/CFLAGS/s/-O2/-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE/' config.status > config.status.hacked
+	    bash ./config.status.hacked
+	fi
+	if grep 's%@CFLAGS@%-O2 -Wall -Wmissing-prototypes -Wmissing-declarations%g' config.status; then
+	    echo "Hacking and rerunning config.status"
+	    sed '/CFLAGS/s/-O2 -Wall -Wmissing-prototypes -Wmissing-declarations/-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE/' config.status > config.status.hacked
+	    bash ./config.status.hacked
+	fi
+    elif [ -f src/configure ] ; then
+	echo "Using old-style configuration approach for release <= 7.0"
+	cd src
+	echo "Applying patches for 7.0"
+	patch -p2 < $OLDFIXES/70-fixes2.diff
+	echo "Attempting to fix genbki problem with stray backslash"
+	patch -f -p2 < $OLDFIXES/fix-genbki-stray-backslash.diff || echo "Patch failed -- trying without"
+	./configure --without-CXX --host=i386-linux  --with-template=linux_i386 --prefix="$prefix"
+	echo "replacing CFLAGS"
+	sed '/CFLAGS/s/-O2/-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE/' config.status > config.status.hacked
+	#sed '/CFLAGS/s/-O2/-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O0 -g -D_GNU_SOURCE/' config.status > config.status.debug
+	echo "Reruning config.status"
+	bash ./config.status.hacked
+    else
+       echo "Cannot configure $ver -- skipping"
+       continue
+    fi
+
+    echo "Attempting to fix genbki problem with stray backslash"
+    patch -f -p1 < $OLDFIXES/fix-genbki-ame.diff || echo "Patch failed -- trying without"
+    echo "Attempting to fix pre-x86_64 code"
+    patch -f -p1 < $OLDFIXES/fix-x86_64.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix yyleng incompatibility"
+    patch -f -p1 < $OLDFIXES/yyleng-fix.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix readline incompatibility"
+    patch -f -p1 < $OLDFIXES/fix-readline2.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix ecpg bison yyerror_verbose incompatibility"
+    patch -f -p1 < $OLDFIXES/fix_ecpg_bison_yyerror.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix postgres.h extern int errno problem"
+    patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix postgres.h extern int errno problem some more"
+    patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff  || echo "Patch failed -- trying without"
+    echo "Attempting to fix plpgsql bison problem"
+    patch -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff  || echo "Patch failed -- trying without"
+
+    make
+    if [ $? -ne 0 ]; then
+        echo "make failed -- skipping $vers"
+	continue
+    fi
+
+#    make check
+#    if [ $? -ne 0 ]; then
+#        echo "make check failed -- skipping $vers"
+#	continue
+#    fi
+
+    make install || echo "make install failed"
+
+    $prefix/bin/initdb -D /var/tmp/d-$ver
+done
