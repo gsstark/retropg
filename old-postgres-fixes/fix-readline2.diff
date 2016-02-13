@@ -35,3 +35,16 @@ index 0e9cb2d..7d8cf47 100644
  	}
  
  
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index f372e0e..71935a7 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -731,7 +731,7 @@ psql_completion(char *text, int start, int end)
+ 			 strcmp(prev_wd, "\\s") == 0 ||
+ 		   strcmp(prev_wd, "\\w") == 0 || strcmp(prev_wd, "\\write") == 0
+ 		)
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ 
+ 
+ 	/*

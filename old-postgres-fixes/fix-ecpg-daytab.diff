@@ -1,0 +1,13 @@
+diff --git a/src/interfaces/ecpg/pgtypeslib/dt_common.c b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+index 739ce8b..e46d62e 100644
+--- a/src/interfaces/ecpg/pgtypeslib/dt_common.c
++++ b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+@@ -9,7 +9,7 @@
+ #include "dt.h"
+ #include "extern.h"
+ 
+-static int day_tab[2][13] = {
++int day_tab[2][13] = {
+ 	        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
+ 		{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}};
+ 

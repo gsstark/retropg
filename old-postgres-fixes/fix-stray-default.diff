@@ -1,0 +1,12 @@
+diff --git a/src/backend/commands/trigger.c b/src/backend/commands/trigger.c
+index 40159db..24a7fc8 100644
+--- a/src/backend/commands/trigger.c
++++ b/src/backend/commands/trigger.c
+@@ -1138,7 +1138,6 @@ deferredTriggerExecute(DeferredTriggerEvent event, int itemno)
+ 					rel->trigdesc->tg_after_row[TRIGGER_EVENT_DELETE][itemno];
+ 			break;
+ 
+-		default:
+ 	} 
+ 
+ 	/* ----------

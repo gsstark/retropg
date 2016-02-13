@@ -1,0 +1,22 @@
+diff --git a/src/backend/port/sysv_shmem.c b/src/backend/port/sysv_shmem.c
+index ffe5bfa..e45c3ef 100644
+--- a/src/backend/port/sysv_shmem.c
++++ b/src/backend/port/sysv_shmem.c
+@@ -307,7 +307,7 @@ PGSharedMemoryCreate(uint32 size, bool makePrivate, int port)
+ 	/* Just attach and return the pointer */
+ 	if (ExecBackend && UsedShmemSegAddr != NULL && !makePrivate)
+ 	{
+-		if ((hdr = (PGShmemHeader *) memAddress = PGSharedMemoryAttach(
++		if ((hdr = memAddress = PGSharedMemoryAttach(
+ 						UsedShmemSegID, &shmid, UsedShmemSegAddr)) == NULL)
+ 		{
+ 			fprintf(stderr, "Unable to attach to proper memory at fixed address: shmget(key=%d, addr=%p) failed: %s\n",
+@@ -337,7 +337,7 @@ PGSharedMemoryCreate(uint32 size, bool makePrivate, int port)
+ 
+ 		/* Check shared memory and possibly remove and recreate */
+ 			
+-		if ((hdr = (PGShmemHeader *) memAddress = PGSharedMemoryAttach(
++		if ((hdr = memAddress = PGSharedMemoryAttach(
+ 						NextShmemSegID, &shmid, UsedShmemSegAddr)) == NULL)
+ 			continue;			/* can't attach, not one of mine */
+ 

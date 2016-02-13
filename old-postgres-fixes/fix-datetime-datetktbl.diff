@@ -1,0 +1,13 @@
+diff --git a/src/backend/utils/adt/datetime.c b/src/backend/utils/adt/datetime.c
+index 81a3d96..6f3895d 100644
+--- a/src/backend/utils/adt/datetime.c
++++ b/src/backend/utils/adt/datetime.c
+@@ -85,7 +85,7 @@ char	   *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday",
+  * entries by 10 and truncate the text field at MAXTOKLEN characters.
+  * the text field is not guaranteed to be NULL-terminated.
+  */
+-static datetkn datetktbl[] = {
++datetkn datetktbl[] = {
+ /*		text			token	lexval */
+ 	{EARLY, RESERV, DTK_EARLY}, /* "-infinity" reserved for "early time" */
+ 	{"acsst", DTZ, 63},			/* Cent. Australia */

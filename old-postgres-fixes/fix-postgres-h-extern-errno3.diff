@@ -1,0 +1,55 @@
+diff --git a/src/include/c.h b/src/include/c.h
+index 4e1680a..dc8a555 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -53,6 +53,7 @@
+ #include "pg_config.h"
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/include/catalog/indexing.h b/src/include/catalog/indexing.h
+index 95deaeb..11a665c 100644
+--- a/src/include/catalog/indexing.h
++++ b/src/include/catalog/indexing.h
+@@ -98,8 +98,8 @@ extern void CatalogUpdateIndexes(Relation heapRel, HeapTuple heapTuple);
+  * These macros are just to keep the C compiler from spitting up on the
+  * upcoming commands for genbki.sh.
+  */
+-#define DECLARE_INDEX(x) extern int errno
+-#define DECLARE_UNIQUE_INDEX(x) extern int errno
++#define DECLARE_INDEX(x) extern int no_such_variable
++#define DECLARE_UNIQUE_INDEX(x) extern int no_such_variable
+ #define BUILD_INDICES
+ 
+ 
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index 9f97429..3eeb6a3 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -539,8 +539,8 @@ extern int ExceptionalCondition(char *conditionName, char *errorType,
+ #define BKI_WITHOUT_OIDS
+ 
+ /* these need to expand into some harmless, repeatable declaration */
+-#define DATA(x)   extern int errno
+-#define DESCR(x)  extern int errno
++#define DATA(x)   extern int no_such_variable
++#define DESCR(x)  extern int no_such_variable
+ 
+ #define BKI_BEGIN
+ #define BKI_END
+diff --git a/src/pl/plperl/ppport.h b/src/pl/plperl/ppport.h
+index 8a788ad..cfba433 100644
+--- a/src/pl/plperl/ppport.h
++++ b/src/pl/plperl/ppport.h
+@@ -180,7 +180,7 @@ __DATA__
+ #ifdef WIN32
+ #define dTHR extern int Perl___notused
+ #else
+-#define dTHR extern int errno
++#define dTHR extern int no_such_variable
+ #endif
+ #endif
+ 
