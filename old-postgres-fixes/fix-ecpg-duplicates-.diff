@@ -1,0 +1,29 @@
+--- ./interfaces/ecpg/preproc/preproc.y	2016-02-13 21:42:37.918957195 +0300
++++ ./interfaces/ecpg/preproc/preproc.y.hacked	2016-02-13 21:42:45.555155063 +0300
+@@ -767,7 +767,7 @@
+ %type  <str>	opt_table opt_all opt_unique sort_clause sortby_list
+ %type  <str>	sortby OptUseOp opt_inh_star relation_name_list name_list
+ %type  <str>	group_clause having_clause from_clause 
+-%type  <str>	table_list join_outer where_clause relation_expr sub_type
++%type  <str> join_outer where_clause relation_expr sub_type
+ %type  <str>	opt_column_list insert_rest InsertStmt OptimizableStmt
+ %type  <str>    columnList DeleteStmt LockStmt UpdateStmt CursorStmt
+ %type  <str>    NotifyStmt columnElem copy_dirn UnlistenStmt copy_null
+@@ -801,7 +801,7 @@
+ %type  <str>	case_expr when_clause_list case_default case_arg when_clause
+ %type  <str>    select_clause opt_select_limit select_limit_value
+ %type  <str>    select_offset_value table_list using_expr join_expr
+-%type  <str>	using_list from_expr table_expr join_clause join_type
++%type  <str>	using_list from_expr table_expr join_type
+ %type  <str>	join_qual update_list join_clause join_clause_with_union
+ %type  <str>	opt_level opt_lock lock_type,
+ %type  <str>    OptConstrFromTable comment_op ConstraintAttributeSpec
+@@ -822,7 +822,7 @@
+ %type  <str>	enum_type civariableonly ECPGCursorStmt ECPGDeallocate
+ %type  <str>	ECPGFree ECPGDeclare ECPGVar sql_variable_declarations
+ %type  <str>	sql_declaration sql_variable_list sql_variable opt_at
+-%type  <str>    struct_type s_struct declaration declarations variable_declarations
++%type  <str>    struct_type declaration declarations variable_declarations
+ %type  <str>    s_struct s_union union_type ECPGSetAutocommit on_off
+ 
+ %type  <type_enum> simple_type varchar_type

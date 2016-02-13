@@ -1,0 +1,13 @@
+diff --git a/src/interfaces/ecpg/preproc/descriptor.c b/src/interfaces/ecpg/preproc/descriptor.c
+index e55aa88..a7ca240 100644
+--- a/src/interfaces/ecpg/preproc/descriptor.c
++++ b/src/interfaces/ecpg/preproc/descriptor.c
+@@ -61,7 +61,7 @@ static void ECPGnumeric_lvalue(FILE *f,char *name)
+  * descriptor name lookup
+  */
+  
+-static struct descriptor *descriptors;
++struct descriptor *descriptors;
+ 
+ void add_descriptor(char *name,char *connection)
+ {

@@ -28,3 +28,17 @@ index 5628e30..5ad4e67 100644
  extern FILE *yyin,
  		   *yyout;
  
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index bcdba11..4fb9a5b 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -18,7 +18,8 @@ extern char *descriptor_name;
+ extern char *connection;
+ extern char 	*input_filename;
+ extern char 	*yytext, errortext[128];
+-extern int	yylineno, yyleng;
++extern int	yylineno;
++extern size_t yyleng;
+ extern FILE *yyin, *yyout;
+ 
+ extern struct _include_path *include_paths;

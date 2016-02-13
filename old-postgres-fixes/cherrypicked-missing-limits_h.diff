@@ -1,0 +1,17 @@
+commit efbbd107c7b08b7a1351c0199ee4602182e09f05
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Fri Jul 4 16:28:03 2003 +0000
+
+    Add #include <limits.h> (re-add lost change from Wednesday).
+
+diff --git a/src/interfaces/ecpg/pgtypeslib/numeric.c b/src/interfaces/ecpg/pgtypeslib/numeric.c
+index 2e18cff..6ac9ae4 100644
+--- a/src/interfaces/ecpg/pgtypeslib/numeric.c
++++ b/src/interfaces/ecpg/pgtypeslib/numeric.c
+@@ -1,5 +1,6 @@
+ #include "postgres_fe.h"
+ #include <ctype.h>
++#include <limits.h>
+ 
+ #include "extern.h"
+ #include "pgtypes_error.h"

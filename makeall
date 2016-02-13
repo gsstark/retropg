@@ -1,8 +1,9 @@
 #!/bin/sh
 
-VERS_QUARTERS="REL7_0~949 REL7_0~243 REL7_1~2184 REL7_1~1748 REL7_1~943 REL7_1~45 REL7_2~1771 REL7_2~1060 REL7_2~226 REL7_3~1793 REL7_3~1268 REL7_3~366 REL7_4~2136 REL7_4~1629 REL7_4~1080 REL7_4~350 REL8_0_0~2683 REL8_0_0~2132 REL8_0_0~1539 REL8_0_0~839 REL8_0_0~130 REL8_1_0~1542 REL8_1_0~884 REL8_1_0~247 REL8_2_0~2042 REL8_2_0~1581 REL8_2_0~1012 REL8_2_0~332 REL8_3_0~2316 REL8_3_0~1603 REL8_3_0~1189 REL8_3_0~732 REL8_3_0~119 REL8_4_0~1907 REL8_4_0~1498 REL8_4_0~1218 REL8_4_0~775 REL8_4_0~360 REL9_0_0~1855 REL9_0_0~1542 REL9_0_0~1249 REL9_0_0~627 REL9_0_0~202 REL9_1_0~1695 REL9_1_0~1328 REL9_1_0~628 REL9_2_0~1825 REL9_2_0~1396 REL9_2_0~984 REL9_2_0~551 REL9_3_0~1509 REL9_3_0~1099 REL9_3_0~790 REL9_3_0~390 REL9_4_0~1894 REL9_4_0~1617 REL9_4_0~1246 REL9_4_0~744 REL9_5_0~2370 REL9_5_0~1996 REL9_5_0~1569 REL9_5_0~1100 REL9_5_ALPHA1-20-g7b156c1 REL9_5_ALPHA1-489-ge06b2e1 REL9_5_ALPHA1-844-gdfcd9cb REL9_5_ALPHA1-972-g7dc09c1"
+VERS_BAD=REL9_0_0~1542 
+VERS_QUARTERS="REL7_0~949 REL7_0~243 REL7_1~2184 REL7_1~1748 REL7_1~943 REL7_1~45 REL7_2~1771 REL7_2~1060 REL7_2~226 REL7_3~1793 REL7_3~1268 REL7_3~366 REL7_4~2136 REL7_4~1629 REL7_4~1073 REL7_4~350 REL8_0_0~2683 REL8_0_0~2132 REL8_0_0~1539 REL8_0_0~839 REL8_0_0~130 REL8_1_0~1542 REL8_1_0~884 REL8_1_0~247 REL8_2_0~2042 REL8_2_0~1581 REL8_2_0~1012 REL8_2_0~332 REL8_3_0~2316 REL8_3_0~1603 REL8_3_0~1189 REL8_3_0~732 REL8_3_0~119 REL8_4_0~1907 REL8_4_0~1498 REL8_4_0~1218 REL8_4_0~775 REL8_4_0~360 REL9_0_0~1855 REL9_0_0~1454 REL9_0_0~1249 REL9_0_0~627 REL9_0_0~202 REL9_1_0~1695 REL9_1_0~1328 REL9_1_0~628 REL9_2_0~1825 REL9_2_0~1396 REL9_2_0~984 REL9_2_0~551 REL9_3_0~1509 REL9_3_0~1099 REL9_3_0~790 REL9_3_0~390 REL9_4_0~1894 REL9_4_0~1617 REL9_4_0~1246 REL9_4_0~744 REL9_5_0~2370 REL9_5_0~1996 REL9_5_0~1569 REL9_5_0~1100 REL9_5_ALPHA1-20-g7b156c1 REL9_5_ALPHA1-489-ge06b2e1 REL9_5_ALPHA1-844-gdfcd9cb REL9_5_ALPHA1-972-g7dc09c1"
 VERS_RELEASES="REL7_1_3 REL7_2_8 REL7_3_9 REL7_3_21 REL7_4_30 REL8_0_26 REL8_1_23 REL8_2_23 REL8_3_23 REL8_4_22 REL9_0_23 REL9_1_19 REL9_2_14 REL9_3_10 REL9_4_5 REL9_5_0"
-VERS_SLIDES="REL7_0~1309 REL7_0~1300 REL7_0~1297 REL8_2_0~1764 REL8_3_0~1344 REL8_3_0~1416 REL9_2_0~1071 REL9_2_0~771 REL9_3_0~735 REL9_4_0~1923 REL9_5_0~1488"
+VERS_SLIDES="REL7_0~1310 REL7_0~1296 REL8_2_0~1764 REL8_3_0~1344 REL8_3_0~1416 REL9_2_0~1071 REL9_2_0~771 REL9_3_0~735 REL9_4_0~1923 REL9_5_0~1488"
 VERS_SLIDES_BEFORE="REL7_0~1310 REL8_2_0~1765 REL8_3_0~1345 REL8_3_0~1417 REL9_2_0~1072 REL9_2_0~772 REL9_3_0~736 REL9_4_0~1924 REL9_5_0~1489"
 
 VERS="${VERS_SLIDES} ${VERS_RELEASES} ${VERS_QUARTERS}"
@@ -51,9 +52,10 @@ for ver in $RVERS; do
     if [ -f ./configure ] ; then
 	echo "Configuring $ver to install into $prefix"
 
-	patch -s -p1 < $OLDFIXES/flex-autoconf-fix.diff >>$logfile 2>&1
-	patch -s -p1 < $OLDFIXES/fix_configure_cc_version.diff >>$logfile 2>&1
-	patch -s -p1 < $OLDFIXES/fix-sysvshmem-cast.diff >>$logfile 2>&1
+	SRCDIR=$TOPLEVEL
+	patch -p1 < $OLDFIXES/flex-autoconf-fix.diff >>$logfile 2>&1
+	patch -p1 < $OLDFIXES/fix_configure_cc_version.diff >>$logfile 2>&1
+	patch -p1 < $OLDFIXES/fix-sysvshmem-cast.diff >>$logfile 2>&1
 
 	export CFLAGS='-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE'
 	export YFLAGS='-Wnone'
@@ -74,7 +76,7 @@ for ver in $RVERS; do
 	echo "Running ./configure $configureargs"
 	./configure $configureargs >>$logfile 2>&1
 	if [ $? -ne 0 ]; then
-	    echo "configure failed -- skipping $vers"
+	    echo "configure failed -- skipping $ver"
 	    continue
 	fi
 	
@@ -91,34 +93,63 @@ for ver in $RVERS; do
 	echo "Using old-style configuration approach for release <= 7.0"
 	echo "Configuring $ver to install into $prefix"
 	cd src
+	SRCDIR=$TOPLEVEL/src
 	echo "Applying patches for 7.0"
-	patch -s -f -p2 < $OLDFIXES/70-fixes2.diff  >>$logfile 2>&1
-	patch -s -f -p2 < $OLDFIXES/fix-genbki-stray-backslash.diff >>$logfile 2>&1
-	patch -s -f -p2 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
+	patch -f -p2 < $OLDFIXES/70-fixes2.diff  >>$logfile 2>&1
+	patch -f -p2 < $OLDFIXES/fix-genbki-stray-backslash.diff >>$logfile 2>&1
+	patch -f -p2 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
 	echo "Running configure  --without-CXX --host=i386-linux  --with-template=linux_i386 --enable-locale --enable-multibyte --prefix=\"$prefix\""
 	./configure --without-CXX --host=i386-linux  --with-template=linux_i386 --enable-locale --enable-multibyte --prefix="$prefix"  >>$logfile 2>&1
 	echo "replacing CFLAGS and YFLAGS"
 	sed '/CFLAGS/s/-O2/-w -fno-aggressive-loop-optimizations -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -D_GNU_SOURCE/;/YFLAGS/s/-y/-y -Wnone/' config.status > config.status.hacked
 	echo "Reruning config.status"
 	bash ./config.status.hacked  >>$logfile 2>&1
+	cd $TOPLEVEL
     else
        echo "Cannot configure $ver -- skipping"
        continue
     fi
 
-    patch -s -f -p1 < $OLDFIXES/fix-ecpg-daytab.diff  >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-datetime-datetktbl.diff  >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-ecpg-duplicates.diff  >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-genbki-ame.diff  >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-x86_64.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/yyleng-fix.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-readline2.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix_ecpg_bison_yyerror.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno3.diff   >>$logfile 2>&1
-    patch -s -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-ecpg-missing-semicolon.diff >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-ecpg-descriptors.diff >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-ecpg-strndup.diff >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-ecpg-daytab.diff  >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-datetime-datetktbl.diff  >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-ecpg-duplicates.diff  >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-genbki-ame.diff  >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-x86_64.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/yyleng-fix.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-readline2.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix_ecpg_bison_yyerror.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno3.diff   >>$logfile 2>&1
+    patch -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff   >>$logfile 2>&1
+    echo "Hacking preproc.y to remove duplicates..."
+    f="$(find . -name preproc.y)"
+    cp "$f" "${f}.hacked"
+    for s in s_struct join_clause AlterTableStmt table_list; do
+	n="$(grep -c "^%type *<str>.*\s${s}\s" "$f")"
+	if [[ 0 == $n ]]; then
+	    echo "Only $n instances of $s "
+	elif [[ 1 == $n ]]; then
+	    echo "Only $n instances of $s "
+	elif [[ 2 == $n ]]; then
+	    echo "Found $n instances of $s removing one"
+	    sed "0,/^%type.*\s${s}\s/{/^%type.*\s${s}\s/s/\s${s}\s/ /}" < "${f}.hacked" > "${f}.hacked.out"
+	    mv "${f}.hacked.out" "${f}.hacked"
+	    n="$(grep -c "^%type *<str>.*\s${s}\s" "${f}.hacked")"
+	    echo "Now there are $n instances of $s"
+	elif [[ 3 == $n ]]; then
+	    echo "WTF $n instances of $s"
+	fi
+    done
+    diff -u "${f}" "${f}.hacked" > "$OLDFIXES/fix-ecpg-duplicates-${ver}.diff"
+    mv "${f}.hacked" "$f"
+    echo "Hacking preproc.y to remove duplicates...done"
+
+    cd $SRCDIR
 
     make >>$logfile 2>&1
     if [ $? -ne 0 ]; then
@@ -133,6 +164,7 @@ for ver in $RVERS; do
 #	continue
 #    fi
 
+    mkdir "$prefix"
     make install  >>$logfile 2>&1 || echo "make install failed"
 
     PATH=$prefix/bin:$PATH LD_LIBRARY_PATH=$prefix/lib $prefix/bin/initdb -D /var/tmp/d-$ver  >>$logfile 2>&1

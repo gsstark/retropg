@@ -1,0 +1,13 @@
+diff --git a/src/interfaces/ecpg/preproc/preproc.y b/src/interfaces/ecpg/preproc/preproc.y
+index 06895e1..b7a71b8 100644
+--- a/src/interfaces/ecpg/preproc/preproc.y
++++ b/src/interfaces/ecpg/preproc/preproc.y
+@@ -3762,7 +3762,7 @@ a_expr:  attr
+  */
+ b_expr:  attr
+ 				{
+-					$$ = $1
++					$$ = $1;
+ 				}
+ 		| AexprConst
+ 				{	$$ = $1;  }

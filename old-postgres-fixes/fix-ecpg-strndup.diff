@@ -1,0 +1,46 @@
+diff --git a/src/interfaces/ecpg/compatlib/informix.c b/src/interfaces/ecpg/compatlib/informix.c
+index 23e0a82..5dc0506 100644
+--- a/src/interfaces/ecpg/compatlib/informix.c
++++ b/src/interfaces/ecpg/compatlib/informix.c
+@@ -35,24 +35,6 @@ deccopy(Numeric *src, Numeric *target)
+ 	PGTYPESnumeric_copy(src, target);
+ }
+ 
+-static char *
+-strndup(char *str, int len)
+-{
+-	int real_len = strlen(str);
+-	int use_len = (real_len > len) ? len : real_len;
+-	
+-	char *new = malloc(use_len + 1);
+-
+-	if (new)
+-	{
+-		memcpy(str, new, use_len);
+-		new[use_len] = '\0';
+-	}
+-	else
+-		errno = ENOMEM;
+-
+-	return new;
+-}
+ 
+ int
+ deccvasc(char *cp, int len, Numeric *np)
+diff --git a/src/interfaces/ecpg/compatlib/informix.c b/src/interfaces/ecpg/compatlib/informix.c
+index 157809d..a45dccb 100644
+--- a/src/interfaces/ecpg/compatlib/informix.c
++++ b/src/interfaces/ecpg/compatlib/informix.c
+@@ -122,6 +122,7 @@ deccopy(Decimal *src, Decimal *target)
+ 	memcpy(target, src, sizeof(Decimal));
+ }
+ 
++#if 0
+ static char *
+ strndup(const char *str, size_t len)
+ {
+@@ -140,6 +141,7 @@ strndup(const char *str, size_t len)
+ 
+ 	return new;
+ }
++#endif
