@@ -6,8 +6,8 @@ VERS_RELEASES="REL7_1_3 REL7_2_8 REL7_3_9 REL7_3_21 REL7_4_30 REL8_0_26 REL8_1_2
 VERS_SLIDES="REL7_0~1310 REL7_0~1296 REL8_2_0~1764 REL8_3_0~1344 REL8_3_0~1416 REL9_2_0~1071 REL9_2_0~771 REL9_3_0~735 REL9_4_0~1923 REL9_5_0~1488"
 VERS_SLIDES_BEFORE="REL7_0~1310 REL8_2_0~1765 REL8_3_0~1345 REL8_3_0~1417 REL9_2_0~1072 REL9_2_0~772 REL9_3_0~736 REL9_4_0~1924 REL9_5_0~1489"
 
-VERS="${VERS_SLIDES} ${VERS_RELEASES} ${VERS_QUARTERS}"
-
+#VERS="${VERS_SLIDES} ${VERS_RELEASES} ${VERS_QUARTERS}"
+VERS="REL6_5_3 REL6_4_2 REL6_3_2 REL6_2_1 REL6_1_1"
 #VERS="REL8_0_0 REL7_0 REL7_0~949 REL7_0~243 REL7_1~2184 REL7_1~1748 REL7_1~943 REL7_1~45"
 
 #VERS="$(cat revs.quarters)"
@@ -116,7 +116,6 @@ for ver in $RVERS; do
     patch -f -p1 < $OLDFIXES/fix-ecpg-daytab.diff  >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-datetime-datetktbl.diff  >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
-    patch -f -p1 < $OLDFIXES/fix-ecpg-duplicates.diff  >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-genbki-ame.diff  >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-x86_64.diff   >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/yyleng-fix.diff   >>$logfile 2>&1
@@ -126,37 +125,47 @@ for ver in $RVERS; do
     patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff   >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno3.diff   >>$logfile 2>&1
     patch -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff   >>$logfile 2>&1
-    echo "Hacking preproc.y to remove duplicates..."
     f="$(find . -name preproc.y)"
-    cp "$f" "${f}.hacked"
-    for s in s_struct join_clause AlterTableStmt table_list; do
-	n="$(grep -c "^%type *<str>.*\s${s}\s" "$f")"
-	if [[ 0 == $n ]]; then
-	    echo "Only $n instances of $s "
-	elif [[ 1 == $n ]]; then
-	    echo "Only $n instances of $s "
-	elif [[ 2 == $n ]]; then
-	    echo "Found $n instances of $s removing one"
-	    sed "0,/^%type.*\s${s}\s/{/^%type.*\s${s}\s/s/\s${s}\s/ /}" < "${f}.hacked" > "${f}.hacked.out"
-	    mv "${f}.hacked.out" "${f}.hacked"
-	    n="$(grep -c "^%type *<str>.*\s${s}\s" "${f}.hacked")"
-	    echo "Now there are $n instances of $s"
-	elif [[ 3 == $n ]]; then
-	    echo "WTF $n instances of $s"
+    if [[ -n "$f" ]] ; then
+	echo "Hacking preproc.y to remove duplicates..."
+	cp "$f" "${f}.hacked"
+	for s in s_struct join_clause AlterTableStmt table_list; do
+	    n="$(grep -c "^%type *<str>.*\s${s}\s" "$f")"
+	    if [[ 0 == $n ]]; then
+		: echo "Only $n instances of $s "
+	    elif [[ 1 == $n ]]; then
+		: echo "Only $n instances of $s "
+	    elif [[ 2 == $n ]]; then
+		: echo "Found $n instances of $s removing one"
+		sed "0,/^%type.*\s${s}\s/{/^%type.*\s${s}\s/s/\s${s}\s/ /}" < "${f}.hacked" > "${f}.hacked.out"
+		mv "${f}.hacked.out" "${f}.hacked"
+		nn="$(grep -c "^%type *<str>.*\s${s}\s" "${f}.hacked")"
+		echo "Eliminated duplicate $s ($n -> $nn instances)"
+	    elif [[ 3 == $n ]]; then
+		echo "WTF $n instances of $s"
+	    fi
+	done
+	dupdiff="$OLDFIXES/fix-ecpg-duplicates-${ver}.diff"
+	diff -u "${f}" "${f}.hacked" > "$dupdiff"
+	if [[ -s "$dupdiff" ]]; then
+	    echo "Saved diff in $dupdiff"
+	    mv "${f}.hacked" "$f"
+	else
+	    rm "$dupdiff"
 	fi
-    done
-    diff -u "${f}" "${f}.hacked" > "$OLDFIXES/fix-ecpg-duplicates-${ver}.diff"
-    mv "${f}.hacked" "$f"
-    echo "Hacking preproc.y to remove duplicates...done"
+	echo "Hacking preproc.y to remove duplicates...done"
+    fi
 
     cd $SRCDIR
 
+    echo "Running Make..."
     make >>$logfile 2>&1
     if [ $? -ne 0 ]; then
 	tail -20 $logfile
         echo "make failed -- skipping $vers"
 	continue
     fi
+    echo "Running Make...done"
 
 #    make check
 #    if [ $? -ne 0 ]; then
@@ -164,8 +173,12 @@ for ver in $RVERS; do
 #	continue
 #    fi
 
+    echo "Running Make install into $prefix..."
     mkdir "$prefix"
     make install  >>$logfile 2>&1 || echo "make install failed"
+    echo "Running Make install into $prefix...done"
 
+    echo "Running initdb into /var/tmp/d-$ver..."
     PATH=$prefix/bin:$PATH LD_LIBRARY_PATH=$prefix/lib $prefix/bin/initdb -D /var/tmp/d-$ver  >>$logfile 2>&1
+    echo "Running initdb into /var/tmp/d-$ver...done"
 done
