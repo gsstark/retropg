@@ -1,0 +1,141 @@
+ src/backend/port/sysv_shmem.c              |  4 ++--
+ src/bin/psql/tab-complete.c                |  2 +-
+ src/include/c.h                            |  1 +
+ src/include/nodes/pg_list.h                | 12 ++++++++++++
+ src/include/port/linux.h                   |  2 +-
+ src/interfaces/ecpg/compatlib/informix.c   |  2 ++
+ src/interfaces/ecpg/pgtypeslib/dt_common.c |  2 +-
+ src/interfaces/ecpg/preproc/extern.h       |  4 ++--
+ 8 files changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/src/backend/port/sysv_shmem.c b/src/backend/port/sysv_shmem.c
+index ffe5bfa..e45c3ef 100644
+--- a/src/backend/port/sysv_shmem.c
++++ b/src/backend/port/sysv_shmem.c
+@@ -307,7 +307,7 @@ PGSharedMemoryCreate(uint32 size, bool makePrivate, int port)
+ 	/* Just attach and return the pointer */
+ 	if (ExecBackend && UsedShmemSegAddr != NULL && !makePrivate)
+ 	{
+-		if ((hdr = (PGShmemHeader *) memAddress = PGSharedMemoryAttach(
++		if ((hdr = memAddress = PGSharedMemoryAttach(
+ 						UsedShmemSegID, &shmid, UsedShmemSegAddr)) == NULL)
+ 		{
+ 			fprintf(stderr, "Unable to attach to proper memory at fixed address: shmget(key=%d, addr=%p) failed: %s\n",
+@@ -337,7 +337,7 @@ PGSharedMemoryCreate(uint32 size, bool makePrivate, int port)
+ 
+ 		/* Check shared memory and possibly remove and recreate */
+ 			
+-		if ((hdr = (PGShmemHeader *) memAddress = PGSharedMemoryAttach(
++		if ((hdr = memAddress = PGSharedMemoryAttach(
+ 						NextShmemSegID, &shmid, UsedShmemSegAddr)) == NULL)
+ 			continue;			/* can't attach, not one of mine */
+ 
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index 8f70c25..a83ae4b 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -1299,7 +1299,7 @@ psql_completion(char *text, int start, int end)
+ 			 strcmp(prev_wd, "\\s") == 0 ||
+ 		   strcmp(prev_wd, "\\w") == 0 || strcmp(prev_wd, "\\write") == 0
+ 		)
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ 
+ 
+ 	/*
+diff --git a/src/include/c.h b/src/include/c.h
+index 3f6c23c..efa8243 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -57,6 +57,7 @@
+ #endif
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/include/nodes/pg_list.h b/src/include/nodes/pg_list.h
+index 5bf17ce..e0f0211 100644
+--- a/src/include/nodes/pg_list.h
++++ b/src/include/nodes/pg_list.h
+@@ -58,6 +58,18 @@ typedef struct Value
+ #define floatVal(v)		atof(((Value *)(v))->val.str)
+ #define strVal(v)		(((Value *)(v))->val.str)
+ 
++/*
++ * Convenience macros for building fixed-length lists
++ */
++#define makeList1(x1)				lcons(x1, NIL)
++#define makeList2(x1,x2)			lcons(x1, makeList1(x2))
++#define makeList3(x1,x2,x3)			lcons(x1, makeList2(x2,x3))
++#define makeList4(x1,x2,x3,x4)		lcons(x1, makeList3(x2,x3,x4))
++
++#define makeListi1(x1)				lconsi(x1, NIL)
++#define makeListi2(x1,x2)			lconsi(x1, makeListi1(x2))
++#define makeListi3(x1,x2,x3)		lconsi(x1, makeListi2(x2,x3))
++#define makeListi4(x1,x2,x3,x4)		lconsi(x1, makeListi3(x2,x3,x4))
+ 
+ /*----------------------
+  *		List node
+diff --git a/src/include/port/linux.h b/src/include/port/linux.h
+index 283799c..f6aacc6 100644
+--- a/src/include/port/linux.h
++++ b/src/include/port/linux.h
+@@ -4,7 +4,7 @@
+ #endif
+ 
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ typedef unsigned char slock_t;
+ 
+ #define HAS_TEST_AND_SET
+diff --git a/src/interfaces/ecpg/compatlib/informix.c b/src/interfaces/ecpg/compatlib/informix.c
+index 157809d..a45dccb 100644
+--- a/src/interfaces/ecpg/compatlib/informix.c
++++ b/src/interfaces/ecpg/compatlib/informix.c
+@@ -122,6 +122,7 @@ deccopy(Decimal *src, Decimal *target)
+ 	memcpy(target, src, sizeof(Decimal));
+ }
+ 
++#if 0
+ static char *
+ strndup(const char *str, size_t len)
+ {
+@@ -140,6 +141,7 @@ strndup(const char *str, size_t len)
+ 
+ 	return new;
+ }
++#endif
+ 
+ int
+ deccvasc(char *cp, int len, Decimal *np)
+diff --git a/src/interfaces/ecpg/pgtypeslib/dt_common.c b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+index 8d41d6f..3815cb1 100644
+--- a/src/interfaces/ecpg/pgtypeslib/dt_common.c
++++ b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+@@ -7,7 +7,7 @@
+ #include "extern.h"
+ #include "dt.h"
+ 
+-static int day_tab[2][13] = {
++int day_tab[2][13] = {
+ 	        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
+ 		{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}};
+ 
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index aa76930..5de68ef 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -31,8 +31,8 @@ extern char *yytext,
+ #ifdef YYDEBUG
+ extern int	yydebug;
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 

@@ -1,0 +1,60 @@
+ src/include/c.h                          |  1 +
+ src/include/nodes/pg_list.h              | 12 ++++++++++++
+ src/interfaces/ecpg/compatlib/informix.c |  2 ++
+ 3 files changed, 15 insertions(+)
+
+diff --git a/src/include/c.h b/src/include/c.h
+index f7db157..051c5e6 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -68,6 +68,7 @@
+  * have its own.  The same goes for stddef and stdarg if present.
+  */
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/include/nodes/pg_list.h b/src/include/nodes/pg_list.h
+index 16040f4..86fa506 100644
+--- a/src/include/nodes/pg_list.h
++++ b/src/include/nodes/pg_list.h
+@@ -39,6 +39,18 @@
+ 
+ #include "nodes/nodes.h"
+ 
++/*
++ * Convenience macros for building fixed-length lists
++ */
++#define makeList1(x1)				lcons(x1, NIL)
++#define makeList2(x1,x2)			lcons(x1, makeList1(x2))
++#define makeList3(x1,x2,x3)			lcons(x1, makeList2(x2,x3))
++#define makeList4(x1,x2,x3,x4)		lcons(x1, makeList3(x2,x3,x4))
++
++#define makeListi1(x1)				lconsi(x1, NIL)
++#define makeListi2(x1,x2)			lconsi(x1, makeListi1(x2))
++#define makeListi3(x1,x2,x3)		lconsi(x1, makeListi2(x2,x3))
++#define makeListi4(x1,x2,x3,x4)		lconsi(x1, makeListi3(x2,x3,x4))
+ 
+ typedef struct ListCell ListCell;
+ 
+diff --git a/src/interfaces/ecpg/compatlib/informix.c b/src/interfaces/ecpg/compatlib/informix.c
+index 3b30864..b072d2b 100644
+--- a/src/interfaces/ecpg/compatlib/informix.c
++++ b/src/interfaces/ecpg/compatlib/informix.c
+@@ -175,6 +175,7 @@ deccopy(decimal *src, decimal *target)
+ 	memcpy(target, src, sizeof(decimal));
+ }
+ 
++#if 0
+ static char *
+ ecpg_strndup(const char *str, size_t len)
+ {
+@@ -193,6 +194,7 @@ ecpg_strndup(const char *str, size_t len)
+ 
+ 	return new;
+ }
++#endif
+ 
+ int
+ deccvasc(char *cp, int len, decimal *np)

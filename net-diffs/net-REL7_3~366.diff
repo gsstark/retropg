@@ -1,0 +1,134 @@
+ configure                            | 2 +-
+ src/bin/psql/tab-complete.c          | 2 +-
+ src/include/c.h                      | 1 +
+ src/include/catalog/indexing.h       | 4 ++--
+ src/include/port/linux.h             | 2 +-
+ src/include/postgres.h               | 4 ++--
+ src/include/storage/s_lock.h         | 2 +-
+ src/interfaces/ecpg/preproc/extern.h | 4 ++--
+ src/pl/plperl/ppport.h               | 6 +-----
+ 9 files changed, 12 insertions(+), 15 deletions(-)
+
+diff --git a/configure b/configure
+index 40ff599..8e91493 100755
+--- a/configure
++++ b/configure
+@@ -3618,7 +3618,7 @@ else
+       then
+         echo '%%'  > conftest.l
+         if $pgac_candidate -t conftest.l 2>/dev/null | grep FLEX_SCANNER >/dev/null 2>&1; then
+-          if $pgac_candidate --version | grep '2\.5\.3' >/dev/null 2>&1; then
++          if $pgac_candidate --version | grep '2\.5\.3$' >/dev/null 2>&1; then
+             pgac_broken_flex=$pgac_candidate
+             continue
+           fi
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index ce4a2b5..74a4d7a 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -820,7 +820,7 @@ psql_completion(char *text, int start, int end)
+ 			 strcmp(prev_wd, "\\s") == 0 ||
+ 		   strcmp(prev_wd, "\\w") == 0 || strcmp(prev_wd, "\\write") == 0
+ 		)
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ 
+ 
+ 	/*
+diff --git a/src/include/c.h b/src/include/c.h
+index 4e1680a..dc8a555 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -53,6 +53,7 @@
+ #include "pg_config.h"
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/include/catalog/indexing.h b/src/include/catalog/indexing.h
+index 95deaeb..11a665c 100644
+--- a/src/include/catalog/indexing.h
++++ b/src/include/catalog/indexing.h
+@@ -98,8 +98,8 @@ extern void CatalogUpdateIndexes(Relation heapRel, HeapTuple heapTuple);
+  * These macros are just to keep the C compiler from spitting up on the
+  * upcoming commands for genbki.sh.
+  */
+-#define DECLARE_INDEX(x) extern int errno
+-#define DECLARE_UNIQUE_INDEX(x) extern int errno
++#define DECLARE_INDEX(x) extern int no_such_variable
++#define DECLARE_UNIQUE_INDEX(x) extern int no_such_variable
+ #define BUILD_INDICES
+ 
+ 
+diff --git a/src/include/port/linux.h b/src/include/port/linux.h
+index c5d5848..db52405 100644
+--- a/src/include/port/linux.h
++++ b/src/include/port/linux.h
+@@ -1,4 +1,4 @@
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ typedef unsigned char slock_t;
+ 
+ #define HAS_TEST_AND_SET
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index 9f97429..3eeb6a3 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -539,8 +539,8 @@ extern int ExceptionalCondition(char *conditionName, char *errorType,
+ #define BKI_WITHOUT_OIDS
+ 
+ /* these need to expand into some harmless, repeatable declaration */
+-#define DATA(x)   extern int errno
+-#define DESCR(x)  extern int errno
++#define DATA(x)   extern int no_such_variable
++#define DESCR(x)  extern int no_such_variable
+ 
+ #define BKI_BEGIN
+ #define BKI_END
+diff --git a/src/include/storage/s_lock.h b/src/include/storage/s_lock.h
+index 1174b13..73bf275 100644
+--- a/src/include/storage/s_lock.h
++++ b/src/include/storage/s_lock.h
+@@ -94,7 +94,7 @@
+  */
+ 
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ #define TAS(lock) tas(lock)
+ 
+ static __inline__ int
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index 9b90899..c03e570 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -25,8 +25,8 @@ extern char *yytext,
+ #ifdef YYDEBUG
+ extern int	yydebug;
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 
+diff --git a/src/pl/plperl/ppport.h b/src/pl/plperl/ppport.h
+index 8a788ad..15b259e 100644
+--- a/src/pl/plperl/ppport.h
++++ b/src/pl/plperl/ppport.h
+@@ -177,11 +177,7 @@ __DATA__
+ #endif
+ 
+ #ifndef dTHR
+-#ifdef WIN32
+-#define dTHR extern int Perl___notused
+-#else
+-#define dTHR extern int errno
+-#endif
++#define dTHR extern int no_such_variable
+ #endif
+ 
+ #ifndef boolSV

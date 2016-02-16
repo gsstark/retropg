@@ -1,0 +1,31 @@
+ src/include/c.h                      | 1 +
+ src/interfaces/ecpg/preproc/extern.h | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/include/c.h b/src/include/c.h
+index adade7f..3387d71 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -61,6 +61,7 @@
+ #endif
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index 06cc74f..cd1cda3 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -30,8 +30,8 @@ extern char *yytext,
+ #ifdef YYDEBUG
+ extern int	yydebug;
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 

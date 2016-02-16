@@ -1,0 +1,183 @@
+ configure                             | 4 ++--
+ src/backend/utils/adt/datetime.c      | 2 +-
+ src/include/c.h                       | 1 +
+ src/include/catalog/indexing.h        | 4 ++--
+ src/include/port/linux.h              | 2 +-
+ src/include/postgres.h                | 4 ++--
+ src/include/storage/s_lock.h          | 2 +-
+ src/interfaces/ecpg/preproc/extern.h  | 4 ++--
+ src/interfaces/ecpg/preproc/preproc.y | 1 -
+ src/pl/plperl/ppport.h                | 6 +-----
+ src/pl/plpgsql/src/gram.y             | 6 ++++--
+ 11 files changed, 17 insertions(+), 19 deletions(-)
+
+diff --git a/configure b/configure
+index c63ac23..f8a721c 100755
+--- a/configure
++++ b/configure
+@@ -1656,7 +1656,7 @@ fi
+ 
+ # Create compiler version string
+ if test x"$GCC" = x"yes" ; then
+-  cc_string="GCC `${CC} --version`"
++  cc_string="GCC `${CC} --version | head -1`"
+ else
+   cc_string=$CC
+ fi
+@@ -2693,7 +2693,7 @@ else
+       then
+         echo '%%'  > conftest.l
+         if $pgac_candidate -t conftest.l 2>/dev/null | grep FLEX_SCANNER >/dev/null 2>&1; then
+-          if $pgac_candidate --version | grep '2\.5\.3' >/dev/null 2>&1; then
++          if $pgac_candidate --version | grep '2\.5\.3$' >/dev/null 2>&1; then
+             pgac_broken_flex=$pgac_candidate
+             continue
+           fi
+diff --git a/src/backend/utils/adt/datetime.c b/src/backend/utils/adt/datetime.c
+index 81a3d96..6f3895d 100644
+--- a/src/backend/utils/adt/datetime.c
++++ b/src/backend/utils/adt/datetime.c
+@@ -85,7 +85,7 @@ char	   *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday",
+  * entries by 10 and truncate the text field at MAXTOKLEN characters.
+  * the text field is not guaranteed to be NULL-terminated.
+  */
+-static datetkn datetktbl[] = {
++datetkn datetktbl[] = {
+ /*		text			token	lexval */
+ 	{EARLY, RESERV, DTK_EARLY}, /* "-infinity" reserved for "early time" */
+ 	{"acsst", DTZ, 63},			/* Cent. Australia */
+diff --git a/src/include/c.h b/src/include/c.h
+index 51727b4..885b558 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -49,6 +49,7 @@
+    have its own.  The same goes for stddef and stdarg if present.
+ */
+ 
++#include <errno.h>
+ #include "config.h"
+ 
+ #include <stdio.h>
+diff --git a/src/include/catalog/indexing.h b/src/include/catalog/indexing.h
+index 50e4d14..02aaa6c 100644
+--- a/src/include/catalog/indexing.h
++++ b/src/include/catalog/indexing.h
+@@ -137,8 +137,8 @@ extern HeapTuple ClassOidIndexScan(Relation heapRelation, Datum relId);
+  * These macros are just to keep the C compiler from spitting up on the
+  * upcoming commands for genbki.sh.
+  */
+-#define DECLARE_INDEX(x) extern int errno
+-#define DECLARE_UNIQUE_INDEX(x) extern int errno
++#define DECLARE_INDEX(x) extern int no_such_variable
++#define DECLARE_UNIQUE_INDEX(x) extern int no_such_variable
+ #define BUILD_INDICES
+ 
+ 
+diff --git a/src/include/port/linux.h b/src/include/port/linux.h
+index 2dc8c45..242032e 100644
+--- a/src/include/port/linux.h
++++ b/src/include/port/linux.h
+@@ -1,4 +1,4 @@
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ typedef unsigned char slock_t;
+ 
+ #define HAS_TEST_AND_SET
+diff --git a/src/include/postgres.h b/src/include/postgres.h
+index e4e959d..1e1e1dc 100644
+--- a/src/include/postgres.h
++++ b/src/include/postgres.h
+@@ -574,8 +574,8 @@ extern int	assertTest(int val);
+ #define BOOTSTRAP
+ 
+ /* these need to expand into some harmless, repeatable declaration */
+-#define DATA(x)   extern int errno
+-#define DESCR(x)  extern int errno
++#define DATA(x)   extern int no_such_variable
++#define DESCR(x)  extern int no_such_variable
+ 
+ #define BKI_BEGIN
+ #define BKI_END
+diff --git a/src/include/storage/s_lock.h b/src/include/storage/s_lock.h
+index 86fc8e2..2c40f4a 100644
+--- a/src/include/storage/s_lock.h
++++ b/src/include/storage/s_lock.h
+@@ -106,7 +106,7 @@
+  */
+ 
+ 
+-#if defined(__i386__)
++#if defined(__i386__) || defined(__x86_64__)
+ #define TAS(lock) tas(lock)
+ 
+ static __inline__ int
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index a6813c2..759f674 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -24,8 +24,8 @@ extern char *yytext,
+ extern int	yydebug;
+ 
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int	yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 
+diff --git a/src/interfaces/ecpg/preproc/preproc.y b/src/interfaces/ecpg/preproc/preproc.y
+index 2228c12..e42a01c 100644
+--- a/src/interfaces/ecpg/preproc/preproc.y
++++ b/src/interfaces/ecpg/preproc/preproc.y
+@@ -372,7 +372,6 @@ make_name(void)
+ 
+ %type  <ival>	Iresult
+ 
+-%token YYERROR_VERBOSE
+ %%
+ prog: statements;
+ 
+diff --git a/src/pl/plperl/ppport.h b/src/pl/plperl/ppport.h
+index be5f990..068acc0 100644
+--- a/src/pl/plperl/ppport.h
++++ b/src/pl/plperl/ppport.h
+@@ -177,11 +177,7 @@ __DATA__
+ #endif
+ 
+ #ifndef dTHR
+-#ifdef WIN32
+-#define dTHR extern int Perl___notused
+-#else
+-#define dTHR extern int errno
+-#endif
++#define dTHR extern int no_such_variable
+ #endif
+ 
+ #ifndef boolSV
+diff --git a/src/pl/plpgsql/src/gram.y b/src/pl/plpgsql/src/gram.y
+index 14f32c2..994e2ba 100644
+--- a/src/pl/plpgsql/src/gram.y
++++ b/src/pl/plpgsql/src/gram.y
+@@ -39,9 +39,11 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include "plpgsql.h"
+-#ifdef YYBISON
++#if 0
+ #include "pl_scan.c" /* GNU bison wants it here */
+ #endif
++extern char yytext[];
++extern int yylineno;
+ 
+ 
+ 
+@@ -1554,7 +1556,7 @@ lno				:
+ 
+ %%
+ 
+-#ifndef YYBISON
++#if 1
+ #include "pl_scan.c" /* BSD yacc wants it here */
+ #endif
+ 

@@ -1,0 +1,45 @@
+ src/bin/psql/tab-complete.c          | 2 +-
+ src/include/c.h                      | 1 +
+ src/interfaces/ecpg/preproc/extern.h | 4 ++--
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index f6174a7..57f14f3 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -1306,7 +1306,7 @@ psql_completion(char *text, int start, int end)
+ 			 strcmp(prev_wd, "\\s") == 0 ||
+ 		   strcmp(prev_wd, "\\w") == 0 || strcmp(prev_wd, "\\write") == 0
+ 		)
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ 
+ 
+ 	/*
+diff --git a/src/include/c.h b/src/include/c.h
+index 934e976..c8d3537 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -57,6 +57,7 @@
+ #endif
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index a1ea69e..50096e4 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -31,8 +31,8 @@ extern char *yytext,
+ #ifdef YYDEBUG
+ extern int	yydebug;
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 

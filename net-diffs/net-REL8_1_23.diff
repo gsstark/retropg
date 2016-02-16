@@ -1,0 +1,15 @@
+ src/include/c.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/include/c.h b/src/include/c.h
+index 38af69e..5c2f62f 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -61,6 +61,7 @@
+ #endif
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>

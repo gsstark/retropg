@@ -1,0 +1,18 @@
+ src/interfaces/ecpg/preproc/extern.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index a7a125c..498179f 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -39,8 +39,8 @@ extern char *yytext,
+ #ifdef YYDEBUG
+ extern int	yydebug;
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ extern char *output_filename;

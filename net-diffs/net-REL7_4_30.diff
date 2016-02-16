@@ -1,0 +1,29 @@
+ src/bin/psql/tab-complete.c | 2 +-
+ src/include/c.h             | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/bin/psql/tab-complete.c b/src/bin/psql/tab-complete.c
+index 7fbd5e7..cb9dc46 100644
+--- a/src/bin/psql/tab-complete.c
++++ b/src/bin/psql/tab-complete.c
+@@ -1299,7 +1299,7 @@ psql_completion(char *text, int start, int end)
+ 			 strcmp(prev_wd, "\\s") == 0 ||
+ 		   strcmp(prev_wd, "\\w") == 0 || strcmp(prev_wd, "\\write") == 0
+ 		)
+-		matches = completion_matches(text, filename_completion_function);
++		matches = completion_matches(text, rl_filename_completion_function);
+ 
+ 
+ 	/*
+diff --git a/src/include/c.h b/src/include/c.h
+index 9895b03..7980016 100644
+--- a/src/include/c.h
++++ b/src/include/c.h
+@@ -57,6 +57,7 @@
+ #endif
+ #include "postgres_ext.h"
+ 
++#include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
