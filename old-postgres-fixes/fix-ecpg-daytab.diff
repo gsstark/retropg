@@ -11,3 +11,16 @@ index 739ce8b..e46d62e 100644
  	        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
  		{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}};
  
+diff --git a/src/interfaces/ecpg/pgtypeslib/dt_common.c b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+index 8d41d6f..3815cb1 100644
+--- a/src/interfaces/ecpg/pgtypeslib/dt_common.c
++++ b/src/interfaces/ecpg/pgtypeslib/dt_common.c
+@@ -7,7 +7,7 @@
+ #include "extern.h"
+ #include "dt.h"
+ 
+-static int day_tab[2][13] = {
++int day_tab[2][13] = {
+ 	        {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
+ 		{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0}};
+ 

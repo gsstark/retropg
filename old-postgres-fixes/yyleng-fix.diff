@@ -42,3 +42,18 @@ index bcdba11..4fb9a5b 100644
  extern FILE *yyin, *yyout;
  
  extern struct _include_path *include_paths;
+diff --git a/src/interfaces/ecpg/preproc/extern.h b/src/interfaces/ecpg/preproc/extern.h
+index b393fd3..943518b 100644
+--- a/src/interfaces/ecpg/preproc/extern.h
++++ b/src/interfaces/ecpg/preproc/extern.h
+@@ -24,8 +24,8 @@ extern char *yytext,
+ extern int	yydebug;
+ 
+ #endif
+-extern int	yylineno,
+-			yyleng;
++extern int	yylineno;
++extern size_t yyleng;
+ extern FILE *yyin,
+ 		   *yyout;
+ 
