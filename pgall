@@ -4,47 +4,79 @@ set -e
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 
-for d in /usr/local/pgsql-* ; do
+locale=uk_UA.UTF-8
+encoding=unicode
+wordlist=/usr/share/dict/ukrainian
+
+export LC_ALL=$locale
+export LC_COLLATE=$LC_ALL
+export LC_CTYPE=$LC_ALL
+
+for d in /usr/local/oldpgsql/* ; do
+    if [[ ! -f $d/bin/initdb ]] ; then
+	echo "Skipping $d which doesn't contain an initdb"
+	continue
+    fi
+
+    TESTDIR="/var/tmp/oldpgsql"
+    if [[ ! -d $TESTDIR ]] ; then
+	mkdir $TESTDIR
+    fi
 
     bin="$d/bin"
-    binfallback="$d/../pgsql-REL7_3_21/bin"
+    lib="$d/lib"
+    binfallback="$(echo "$d/../*-REL7_3_21/bin")"
     rel="$(basename "$d")"
-    db="/var/tmp/d-$rel"
-    log="/var/tmp/l-$rel.log"
-    out="/var/tmp/o-$rel.out"
+    db="$TESTDIR/d-$rel"
+    log="$TESTDIR/l-$rel.log"
+    out="$TESTDIR/o-$rel.out"
 
     if [ ! -d $db ] ; then
-       echo "Running initdb for $rel"
-       $bin/initdb -D $db || continue
+       echo "Running initdb for $rel in $db"
+       PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb -D $db || continue
     fi
     trap "$bin/pg_ctl -D $db stop" EXIT
-    $bin/pg_ctl -D $db -l $log start
+    $bin/pg_ctl -D $db -l $log start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db > $log 2>&1 &
     echo -n "Waiting for $rel to start up..."
     for i in `seq 1 30` ; do
 	sleep 1
-    	$bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
+    	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
 	echo -n .
     done
     echo done
 
-    if ! $bin/psql -o /dev/null -X -c 'select 1'; then
-       echo "Creating and initializing db for $rel"
-       $bin/createdb
-       $bin/psql -X -f $here/benchmark-setup.sql
+    if ! PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X -c 'select 1'; then
+	createdbargs=""
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--encoding' >/dev/null; then
+	    createdbargs="$createdbargs --encoding unicode"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--locale' >/dev/null; then
+	    createdbargs="$createdbargs --locale $locale"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--lc_collate' >/dev/null; then
+	    createdbargs="$createdbargs --lc_collate $locale"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--lc_ctype' >/dev/null; then
+	    createdbargs="$createdbargs --lc_ctype $locale"
+	fi
+	echo "Creating and initializing db for $rel"
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb $createdbargs
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X --set wordlist="'$wordlist'" -f $here/benchmark-setup.sql
     fi
 #    $bin/psql -X -f $here/benchmark-fix.sql
 
-    if [[ "Xpgsql-REL7_3" < "X$rel" ]] ; then
-	psqlbin="$bin"
+    if [[ "2003" < "$rel" ]] ; then
+	psql="$bin/psql"
     else
-	psqlbin="$binfallback"
+	# We need this version for \timing
+	psql="$binfallback/psql"
     fi
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( $psqlbin/psql -X -f $here/benchmark-run.sql  >>$out 2>&1 )
+    time ( $psql -X --set wordlist="'$wordlist'" -f $here/benchmark-run.sql  >>$out 2>&1 || echo psql exited with status $?)
     unset TIMEFORMAT
 
-    $bin/pg_ctl -D $db stop -m fast
+    $bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
 
 done

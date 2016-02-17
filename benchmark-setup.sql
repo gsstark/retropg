@@ -1,12 +1,21 @@
-show work_mem;
-show sort_mem;
-create table t (pk serial, word  text);
-copy t (word) from '/usr/share/dict/words';
+\encoding
+\l+
+
+-- -- Done on a modern version of Postgres (in UTF8 encoding):
+-- create table t (word text, wordb bytea, i integer, f float);
+-- copy t(word) from '/usr/share/dict/ukrainian';
+-- create sequence i;
+-- update t set wordb=word::bytea, i = nextval('i'), f = random();
+-- set bytea_output='escape';
+-- copy tt to '/home/stark/src/retropg/data'
+
+create table t (word text, wordb bytea, i integer, f float);
+copy t from '/home/stark/src/retropg/data';
+
+vacuum;
+vacuum;
+vacuum freeze;
+
 select pg_relation_size('t');
-\timing
-vacuum freeze t;
-select count(*) from t;
-select count(*) from (select * from t order by word) as foo;
-select count(*) from (select * from t order by word) as foo;
-select count(*) from (select * from t order by word) as foo;
-explain analyze select * from t order by word;
+\l+
+
