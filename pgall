@@ -13,7 +13,11 @@ export LC_COLLATE=$LC_ALL
 export LC_CTYPE=$LC_ALL
 export LC_NUMERIC=C # c.f. REL7_3~975
 
-for d in /usr/local/oldpgsql/* ; do
+RELS="$(for v in /usr/local/oldpgsql/* ; do basename "$v" ; done | sort -R)"
+
+for rel in $RELS ; do
+    d="/usr/local/oldpgsql/$rel"
+
     if [[ ! -f $d/bin/initdb ]] ; then
 	echo "Skipping $d which doesn't contain an initdb"
 	continue
@@ -27,7 +31,6 @@ for d in /usr/local/oldpgsql/* ; do
     bin="$d/bin"
     lib="$d/lib"
     binfallback="$(echo "$d/../*-REL7_3_21/bin")"
-    rel="$(basename "$d")"
     db="$TESTDIR/d-$rel"
     log="$TESTDIR/l-$rel.log"
     out="$TESTDIR/o-$rel.out"
@@ -64,7 +67,7 @@ for d in /usr/local/oldpgsql/* ; do
 	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb $createdbargs
 	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X --set wordlist="'$wordlist'" -f $here/benchmark-setup.sql
     fi
-#    $bin/psql -X -f $here/benchmark-fix.sql
+    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
 
     if [[ "2003" < "$rel" ]] ; then
 	psql="$bin/psql"
