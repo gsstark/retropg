@@ -11,29 +11,32 @@ show client_encoding;
 select now();
 
 vacuum;
+\timing
 select count(*) as garbage from t;
 
-\timing
+select count(*) as sort_text    from (select * from t order by word) as foo;
+select count(*) as sort_binary  from (select * from t order by wordb) as foo;
+select count(*) as sort_integer from (select * from t order by i) as foo;
+select count(*) as sort_float   from (select * from t order by f) as foo;
 
-select count(*) sort_text    from (select * from t order by word) as foo;
-select count(*) sort_binary  from (select * from t order by wordb) as foo;
-select count(*) sort_integer from (select * from t order by i) as foo;
-select count(*) sort_float   from (select * from t order by f) as foo;
+select count(*) as sort_text    from (select * from t order by word) as foo;
+select count(*) as sort_binary  from (select * from t order by wordb) as foo;
+select count(*) as sort_integer from (select * from t order by i) as foo;
+select count(*) as sort_float   from (select * from t order by f) as foo;
 
-select count(*) sort_text    from (select * from t order by word) as foo;
-select count(*) sort_binary  from (select * from t order by wordb) as foo;
-select count(*) sort_integer from (select * from t order by i) as foo;
-select count(*) sort_float   from (select * from t order by f) as foo;
-
-select count(*) sort2_text    from (select * from t union all select * from t order by word) as foo;
-select count(*) sort2_binary  from (select * from t union all select * from t order by wordb) as foo;
-select count(*) sort2_integer from (select * from t union all select * from t order by i) as foo;
-select count(*) sort2_float   from (select * from t union all select * from t order by f) as foo;
+select count(*) as sort2_text    from (select * from t union all select * from t order by word) as foo;
+select count(*) as sort2_binary  from (select * from t union all select * from t order by wordb) as foo;
+select count(*) as sort2_integer from (select * from t union all select * from t order by i) as foo;
+select count(*) as sort2_float   from (select * from t union all select * from t order by f) as foo;
 
 
-select count(*) sort_t10     from (select * from t order by word limit 10) as foo;
-select count(*) sort_t100    from (select * from t order by word limit 100) as foo;
-select count(*) sort_t1000   from (select * from t order by word limit 1000) as foo;
-select count(*) sort_i10     from (select * from t order by i limit 10) as foo;
-select count(*) sort_i100    from (select * from t order by i limit 100) as foo;
-select count(*) sort_i1000   from (select * from t order by i limit 1000) as foo;
+select count(*) as sort_t10     from (select * from t order by word limit 10) as foo;
+select count(*) as sort_t100    from (select * from t order by word limit 100) as foo;
+select count(*) as sort_t1000   from (select * from t order by word limit 1000) as foo;
+select count(*) as sort_t10     from (select * from t order by word limit 10) as foo;
+select count(*) as sort_t100    from (select * from t order by word limit 100) as foo;
+select count(*) as sort_i10     from (select * from t order by i limit 10) as foo;
+select count(*) as sort_i100    from (select * from t order by i limit 100) as foo;
+select count(*) as sort_i1000   from (select * from t order by i limit 1000) as foo;
+select count(*) as sort_i10     from (select * from t order by i limit 10) as foo;
+select count(*) as sort_i100    from (select * from t order by i limit 100) as foo;

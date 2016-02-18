@@ -11,6 +11,7 @@ wordlist=/usr/share/dict/ukrainian
 export LC_ALL=$locale
 export LC_COLLATE=$LC_ALL
 export LC_CTYPE=$LC_ALL
+export LC_NUMERIC=C # c.f. REL7_3~975
 
 for d in /usr/local/oldpgsql/* ; do
     if [[ ! -f $d/bin/initdb ]] ; then
