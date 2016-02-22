@@ -11,3 +11,16 @@ index 06895e1..b7a71b8 100644
  				}
  		| AexprConst
  				{	$$ = $1;  }
+diff --git a/src/interfaces/ecpg/preproc/preproc.y b/src/interfaces/ecpg/preproc/preproc.y
+index 0aecaee..62f65d5 100644
+--- a/src/interfaces/ecpg/preproc/preproc.y
++++ b/src/interfaces/ecpg/preproc/preproc.y
+@@ -11206,7 +11206,7 @@ ecpg_sconst:	ecpg_real_sconst	{ $$ = $1; }
+ ecpg_xconst:	XCONST		{ $$ = make_name(); } ;
+ 
+ ecpg_ident:	IDENT		{ $$ = make_name(); }
+-		| CSTRING	{ $$ = make3_str(make_str("\""), $1, make_str("\"")) }
++		| CSTRING	{ $$ = make3_str(make_str("\""), $1, make_str("\"")); }
+ 		| UIDENT	{ $$ = $1; }
+ 		;
+ 

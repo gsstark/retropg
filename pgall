@@ -4,6 +4,8 @@ set -e
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 
+pgoptions="-c shared_buffers=16384"
+
 locale=uk_UA.UTF-8
 encoding=unicode
 wordlist=/usr/share/dict/ukrainian
@@ -12,14 +14,16 @@ export LC_ALL=$locale
 export LC_COLLATE=$LC_ALL
 export LC_CTYPE=$LC_ALL
 export LC_NUMERIC=C # c.f. REL7_3~975
+export LC_TIME=C
+export LC_MESSAGES=C
 
-RELS="$(for v in /usr/local/oldpgsql/* ; do basename "$v" ; done | sort -R)"
+RELS="$(for v in /usr/local/oldpgsql/2* ; do basename "$v"  | sed 's,^[0-9]*-[0-9]*[0-9]*-,,' ; done | sort -R)"
 
-for rel in $RELS ; do
-    d="/usr/local/oldpgsql/$rel"
+for ver in $RELS ; do
+    d="$(echo /usr/local/oldpgsql/*-$ver)"
+    rel="$(basename $d)"
 
     if [[ ! -f $d/bin/initdb ]] ; then
-	echo "Skipping $d which doesn't contain an initdb"
 	continue
     fi
 
@@ -37,17 +41,44 @@ for rel in $RELS ; do
 
     if [ ! -d $db ] ; then
        echo "Running initdb for $rel in $db"
-       PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb -D $db || continue
+       initdbargs=""
+       if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb --help | grep -e --encoding >/dev/null ; then
+	   initdbargs="$initdbargs --encoding $encoding"
+       fi
+       if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb --help | grep -e --locale >/dev/null ; then
+	   initdbargs="$initdbargs --locale $LC_ALL"
+       fi
+       if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb --help | grep -e --lc-numeric >/dev/null ; then
+	   initdbargs="$initdbargs --lc-numeric C"
+       fi
+       if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb --help | grep -e --lc-time >/dev/null ; then
+	   initdbargs="$initdbargs --lc-time C"
+       fi
+       if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb --help | grep -e --lc-messages >/dev/null ; then
+	   initdbargs="$initdbargs --lc-messages C"
+       fi
+       PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/initdb -D $db $initdbargs || continue
     fi
+
+    if [[ -e /tmp/.s.PGSQL.5432 ]] ; then
+	echo /tmp/.s.PGSQL.5432 already exists
+    fi
+
     trap "$bin/pg_ctl -D $db stop" EXIT
-    $bin/pg_ctl -D $db -l $log start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db > $log 2>&1 &
+    $bin/pg_ctl -D $db -l $log -o "$pgoptions" start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db $pgoptions > $log 2>&1 &
     echo -n "Waiting for $rel to start up..."
     for i in `seq 1 30` ; do
 	sleep 1
     	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
 	echo -n .
     done
-    echo done
+    if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' ; then
+	echo done
+    else
+	$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
+	trap - EXIT
+	continue
+    fi
 
     if ! PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X -c 'select 1'; then
 	createdbargs=""
@@ -67,7 +98,8 @@ for rel in $RELS ; do
 	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb $createdbargs
 	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X --set wordlist="'$wordlist'" -f $here/benchmark-setup.sql
     fi
-    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
+
+    #PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
 
     if [[ "2003" < "$rel" ]] ; then
 	psql="$bin/psql"
@@ -76,11 +108,15 @@ for rel in $RELS ; do
 	psql="$binfallback/psql"
     fi
 
+    sync
+    sleep 1
+
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( $psql -X --set wordlist="'$wordlist'" -f $here/benchmark-run.sql  >>$out 2>&1 || echo psql exited with status $?)
+    time ( ( $psql -X -f $here/benchmark-run.sql; $psql -X -f $here/benchmark-run.sql )  >>$out 2>&1 || echo psql exited with status $?)
     unset TIMEFORMAT
 
+    trap - EXIT
     $bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
 
 done
