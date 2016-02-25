@@ -1,0 +1,525 @@
+commit 95f8901a96373531070e0eeecfc4953222c0c7e9
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Mon Aug 13 18:45:36 2001 +0000
+
+    Add comparison operators and btree indexing support for type bytea.
+    From Joe Conway.
+
+diff --git a/src/backend/utils/adt/selfuncs.c b/src/backend/utils/adt/selfuncs.c
+index e0cfeef..406916c 100644
+--- a/src/backend/utils/adt/selfuncs.c
++++ b/src/backend/utils/adt/selfuncs.c
+@@ -15,7 +15,7 @@
+  *
+  *
+  * IDENTIFICATION
+- *	  $Header: /cvsroot/pgsql/src/backend/utils/adt/selfuncs.c,v 1.95 2001/07/16 05:06:59 tgl Exp $
++ *	  $Header: /cvsroot/pgsql/src/backend/utils/adt/selfuncs.c,v 1.96 2001/08/13 18:45:35 tgl Exp $
+  *
+  *-------------------------------------------------------------------------
+  */
+@@ -134,8 +134,16 @@ static void convert_string_to_scalar(unsigned char *value,
+ 						 double *scaledlobound,
+ 						 unsigned char *hibound,
+ 						 double *scaledhibound);
++static void convert_bytea_to_scalar(Datum value,
++						 double *scaledvalue,
++						 Datum lobound,
++						 double *scaledlobound,
++						 Datum hibound,
++						 double *scaledhibound);
+ static double convert_one_string_to_scalar(unsigned char *value,
+ 							 int rangelo, int rangehi);
++static double convert_one_bytea_to_scalar(unsigned char *value, int valuelen,
++							 int rangelo, int rangehi);
+ static unsigned char *convert_string_datum(Datum value, Oid typid);
+ static double convert_timevalue_to_scalar(Datum value, Oid typid);
+ static double get_att_numdistinct(Query *root, Var *var,
+@@ -1664,6 +1672,9 @@ icnlikejoinsel(PG_FUNCTION_ARGS)
+  * which is explained below.  The reason why this routine deals with
+  * three values at a time, not just one, is that we need it for strings.
+  *
++ * The bytea datatype is just enough different from strings that it has
++ * to be treated separately.
++ *
+  * The several datatypes representing absolute times are all converted
+  * to Timestamp, which is actually a double, and then we just use that
+  * double value.  Note this will give bad results for the various "special"
+@@ -1719,6 +1730,17 @@ convert_to_scalar(Datum value, Oid valuetypid, double *scaledvalue,
+ 			}
+ 
+ 		/*
++		 * Built-in bytea type
++		 */
++		case BYTEAOID:
++			{
++				convert_bytea_to_scalar(value, scaledvalue,
++										lobound, scaledlobound,
++										hibound, scaledhibound);
++				return true;
++			}
++
++		/*
+ 		 * Built-in time types
+ 		 */
+ 		case TIMESTAMPOID:
+@@ -1997,6 +2019,99 @@ convert_string_datum(Datum value, Oid typid)
+ }
+ 
+ /*
++ * Do convert_to_scalar()'s work for any bytea data type.
++ *
++ * Very similar to convert_string_to_scalar except we can't assume
++ * null-termination and therefore pass explicit lengths around.
++ *
++ * Also, assumptions about likely "normal" ranges of characters have been
++ * removed - a data range of 0..255 is always used, for now.  (Perhaps
++ * someday we will add information about actual byte data range to
++ * pg_statistic.)
++ */
++static void
++convert_bytea_to_scalar(Datum value,
++						double *scaledvalue,
++						Datum lobound,
++						double *scaledlobound,
++						Datum hibound,
++						double *scaledhibound)
++{
++	int			rangelo,
++				rangehi,
++				valuelen = VARSIZE(DatumGetPointer(value)) - VARHDRSZ,
++				loboundlen = VARSIZE(DatumGetPointer(lobound)) - VARHDRSZ,
++				hiboundlen = VARSIZE(DatumGetPointer(hibound)) - VARHDRSZ,
++				i,
++				minlen;
++	unsigned char *valstr = (unsigned char *) VARDATA(DatumGetPointer(value)),
++				*lostr = (unsigned char *) VARDATA(DatumGetPointer(lobound)),
++				*histr = (unsigned char *) VARDATA(DatumGetPointer(hibound));
++
++	/*
++	 * Assume bytea data is uniformly distributed across all byte values.
++	 */
++	rangelo = 0;
++	rangehi = 255;
++
++	/*
++	 * Now strip any common prefix of the three strings.
++	 */
++	minlen = Min(Min(valuelen, loboundlen), hiboundlen);
++	for (i = 0; i < minlen; i++)
++	{
++		if (*lostr != *histr || *lostr != *valstr)
++			break;
++		lostr++, histr++, valstr++;
++		loboundlen--, hiboundlen--, valuelen--;
++	}
++
++	/*
++	 * Now we can do the conversions.
++	 */
++	*scaledvalue = convert_one_bytea_to_scalar(valstr, valuelen, rangelo, rangehi);
++	*scaledlobound = convert_one_bytea_to_scalar(lostr, loboundlen, rangelo, rangehi);
++	*scaledhibound = convert_one_bytea_to_scalar(histr, hiboundlen, rangelo, rangehi);
++}
++
++static double
++convert_one_bytea_to_scalar(unsigned char *value, int valuelen,
++							int rangelo, int rangehi)
++{
++	double		num,
++				denom,
++				base;
++
++	if (valuelen <= 0)
++		return 0.0;				/* empty string has scalar value 0 */
++
++	/*
++	 * Since base is 256, need not consider more than about 10
++	 * chars (even this many seems like overkill)
++	 */
++	if (valuelen > 10)
++		valuelen = 10;
++
++	/* Convert initial characters to fraction */
++	base = rangehi - rangelo + 1;
++	num = 0.0;
++	denom = base;
++	while (valuelen-- > 0)
++	{
++		int			ch = *value++;
++
++		if (ch < rangelo)
++			ch = rangelo - 1;
++		else if (ch > rangehi)
++			ch = rangehi + 1;
++		num += ((double) (ch - rangelo)) / denom;
++		denom *= base;
++	}
++
++	return num;
++}
++
++/*
+  * Do convert_to_scalar()'s work for any timevalue data type.
+  */
+ static double
+diff --git a/src/backend/utils/adt/varlena.c b/src/backend/utils/adt/varlena.c
+index c534c7d..9bc42cf 100644
+--- a/src/backend/utils/adt/varlena.c
++++ b/src/backend/utils/adt/varlena.c
+@@ -8,7 +8,7 @@
+  *
+  *
+  * IDENTIFICATION
+- *	  $Header: /cvsroot/pgsql/src/backend/utils/adt/varlena.c,v 1.70 2001/05/03 19:00:36 tgl Exp $
++ *	  $Header: /cvsroot/pgsql/src/backend/utils/adt/varlena.c,v 1.71 2001/08/13 18:45:35 tgl Exp $
+  *
+  *-------------------------------------------------------------------------
+  */
+@@ -875,3 +875,162 @@ name_text(PG_FUNCTION_ARGS)
+ 
+ 	PG_RETURN_TEXT_P(result);
+ }
++
++
++/*****************************************************************************
++ *	Comparison Functions used for bytea
++ *
++ * Note: btree indexes need these routines not to leak memory; therefore,
++ * be careful to free working copies of toasted datums.  Most places don't
++ * need to be so careful.
++ *****************************************************************************/
++
++Datum
++byteaeq(PG_FUNCTION_ARGS)
++{
++	bytea	    *arg1 = PG_GETARG_BYTEA_P(0);
++	bytea   	*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	bool		result;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	/* fast path for different-length inputs */
++	if (len1 != len2)
++		result = false;
++	else
++		result = (memcmp(VARDATA(arg1), VARDATA(arg2), len1) == 0);
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL(result);
++}
++
++Datum
++byteane(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	bool		result;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	/* fast path for different-length inputs */
++	if (len1 != len2)
++		result = true;
++	else
++		result = (memcmp(VARDATA(arg1), VARDATA(arg2), len1) != 0);
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL(result);
++}
++
++Datum
++bytealt(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	int			cmp;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	cmp = memcmp(VARDATA(arg1), VARDATA(arg2), Min(len1, len2));
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL((cmp < 0) || ((cmp == 0) && (len1 < len2)));
++}
++
++Datum
++byteale(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	int			cmp;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	cmp = memcmp(VARDATA(arg1), VARDATA(arg2), Min(len1, len2));
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL((cmp < 0) || ((cmp == 0) && (len1 <= len2)));
++}
++
++Datum
++byteagt(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	int			cmp;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	cmp = memcmp(VARDATA(arg1), VARDATA(arg2), Min(len1, len2));
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL((cmp > 0) || ((cmp == 0) && (len1 > len2)));
++}
++
++Datum
++byteage(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	int			cmp;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	cmp = memcmp(VARDATA(arg1), VARDATA(arg2), Min(len1, len2));
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_BOOL((cmp > 0) || ((cmp == 0) && (len1 >= len2)));
++}
++
++Datum
++byteacmp(PG_FUNCTION_ARGS)
++{
++	bytea		*arg1 = PG_GETARG_BYTEA_P(0);
++	bytea		*arg2 = PG_GETARG_BYTEA_P(1);
++	int			len1,
++				len2;
++	int			cmp;
++
++	len1 = VARSIZE(arg1) - VARHDRSZ;
++	len2 = VARSIZE(arg2) - VARHDRSZ;
++
++	cmp = memcmp(VARDATA(arg1), VARDATA(arg2), Min(len1, len2));
++	if ((cmp == 0) && (len1 != len2))
++		cmp = (len1 < len2) ? -1 : 1;
++
++	PG_FREE_IF_COPY(arg1, 0);
++	PG_FREE_IF_COPY(arg2, 1);
++
++	PG_RETURN_INT32(cmp);
++}
+diff --git a/src/include/catalog/catversion.h b/src/include/catalog/catversion.h
+index 5827c15..9d63559 100644
+--- a/src/include/catalog/catversion.h
++++ b/src/include/catalog/catversion.h
+@@ -37,7 +37,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: catversion.h,v 1.87 2001/08/10 18:57:39 tgl Exp $
++ * $Id: catversion.h,v 1.88 2001/08/13 18:45:36 tgl Exp $
+  *
+  *-------------------------------------------------------------------------
+  */
+@@ -53,6 +53,6 @@
+  */
+ 
+ /*							yyyymmddN */
+-#define CATALOG_VERSION_NO	200108101
++#define CATALOG_VERSION_NO	200108131
+ 
+ #endif
+diff --git a/src/include/catalog/pg_amop.h b/src/include/catalog/pg_amop.h
+index 48f2c3b..42adef9 100644
+--- a/src/include/catalog/pg_amop.h
++++ b/src/include/catalog/pg_amop.h
+@@ -8,7 +8,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: pg_amop.h,v 1.39 2001/08/10 18:57:39 tgl Exp $
++ * $Id: pg_amop.h,v 1.40 2001/08/13 18:45:36 tgl Exp $
+  *
+  * NOTES
+  *	 the genbki.sh script reads this file and generates .bki
+@@ -250,6 +250,16 @@ DATA(insert (  403 1077 1069 4 ));
+ DATA(insert (  403 1077 1068 5 ));
+ 
+ /*
++ *	nbtree bytea_ops
++ */
++
++DATA(insert (  403 1961 1957 1 ));
++DATA(insert (  403 1961 1958 2 ));
++DATA(insert (  403 1961 1955 3 ));
++DATA(insert (  403 1961 1960 4 ));
++DATA(insert (  403 1961 1959 5 ));
++
++/*
+  *	nbtree date_ops
+  */
+ 
+diff --git a/src/include/catalog/pg_amproc.h b/src/include/catalog/pg_amproc.h
+index a8aadd4..d3639be 100644
+--- a/src/include/catalog/pg_amproc.h
++++ b/src/include/catalog/pg_amproc.h
+@@ -10,7 +10,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: pg_amproc.h,v 1.28 2001/08/10 18:57:39 tgl Exp $
++ * $Id: pg_amproc.h,v 1.29 2001/08/13 18:45:36 tgl Exp $
+  *
+  * NOTES
+  *	  the genbki.sh script reads this file and generates .bki
+@@ -101,6 +101,7 @@ DATA(insert (403 1690 1693 1));
+ DATA(insert (403 1399 1358 1));
+ DATA(insert (403  424 1596 1));
+ DATA(insert (403  425 1672 1));
++DATA(insert (403 1961 1954 1));
+ 
+ 
+ /* hash */
+diff --git a/src/include/catalog/pg_opclass.h b/src/include/catalog/pg_opclass.h
+index eca88f5..77adfc9 100644
+--- a/src/include/catalog/pg_opclass.h
++++ b/src/include/catalog/pg_opclass.h
+@@ -8,7 +8,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: pg_opclass.h,v 1.37 2001/01/24 19:43:21 momjian Exp $
++ * $Id: pg_opclass.h,v 1.38 2001/08/13 18:45:36 tgl Exp $
+  *
+  * NOTES
+  *	  the genbki.sh script reads this file and generates .bki
+@@ -123,5 +123,7 @@ DATA(insert OID =  424 (	bit_ops		   1560   ));
+ DESCR("");
+ DATA(insert OID =  425 (	varbit_ops	   1562   ));
+ DESCR("");
++DATA(insert OID = 1961 (	bytea_ops	     17   ));
++DESCR("");
+ 
+ #endif	 /* PG_OPCLASS_H */
+diff --git a/src/include/catalog/pg_operator.h b/src/include/catalog/pg_operator.h
+index 171ab3d..ef4806f 100644
+--- a/src/include/catalog/pg_operator.h
++++ b/src/include/catalog/pg_operator.h
+@@ -8,7 +8,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: pg_operator.h,v 1.91 2001/06/17 02:05:20 tgl Exp $
++ * $Id: pg_operator.h,v 1.92 2001/08/13 18:45:36 tgl Exp $
+  *
+  * NOTES
+  *	  the genbki.sh script reads this file and generates .bki
+@@ -809,6 +809,14 @@ DATA(insert OID = 1919 (  "+"	   PGUID 0 l t f   0  700 700	0   0   0   0 float4
+ DATA(insert OID = 1920 (  "+"	   PGUID 0 l t f   0  701 701	0   0   0   0 float8up - - ));
+ DATA(insert OID = 1921 (  "+"	   PGUID 0 l t f   0 1700 1700  0   0	0	0 numeric_uplus - - ));
+ 
++/* bytea operators */
++DATA(insert OID = 1955 ( "="	   PGUID 0 b t t 17 17	16 1955 1956 1957 1957 byteaeq eqsel eqjoinsel ));
++DATA(insert OID = 1956 ( "<>"	   PGUID 0 b t f 17 17	16 1956 1955  0 0 byteane neqsel neqjoinsel ));
++DATA(insert OID = 1957 ( "<"	   PGUID 0 b t f 17 17	16 1959 1960  0 0 bytealt scalarltsel scalarltjoinsel ));
++DATA(insert OID = 1958 ( "<="	   PGUID 0 b t f 17 17	16 1960 1959  0 0 byteale scalarltsel scalarltjoinsel ));
++DATA(insert OID = 1959 ( ">"	   PGUID 0 b t f 17 17	16 1957 1958  0 0 byteagt scalargtsel scalargtjoinsel ));
++DATA(insert OID = 1960 ( ">="	   PGUID 0 b t f 17 17	16 1958 1957  0 0 byteage scalargtsel scalargtjoinsel ));
++
+ /*
+  * function prototypes
+  */
+diff --git a/src/include/catalog/pg_proc.h b/src/include/catalog/pg_proc.h
+index 63480d4..2bb41d4 100644
+--- a/src/include/catalog/pg_proc.h
++++ b/src/include/catalog/pg_proc.h
+@@ -7,7 +7,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: pg_proc.h,v 1.202 2001/08/10 20:52:25 tgl Exp $
++ * $Id: pg_proc.h,v 1.203 2001/08/13 18:45:36 tgl Exp $
+  *
+  * NOTES
+  *	  The script catalog/genbki.sh reads this file and generates .bki
+@@ -2699,6 +2699,22 @@ DATA(insert OID = 1946 (  encode						PGUID 12 f t t t 2 f 25 "17 25" 100 0 0 10
+ DESCR("Convert bytea value into some ascii-only text string");
+ DATA(insert OID = 1947 (  decode						PGUID 12 f t t t 2 f 17 "25 25" 100 0 0 100	binary_decode - ));
+ DESCR("Convert ascii-encoded text string into bytea value");
++
++DATA(insert OID = 1948 (  byteaeq		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	byteaeq - ));
++DESCR("equal");
++DATA(insert OID = 1949 (  bytealt		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	bytealt - ));
++DESCR("less-than");
++DATA(insert OID = 1950 (  byteale		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	byteale - ));
++DESCR("less-than-or-equal");
++DATA(insert OID = 1951 (  byteagt		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	byteagt - ));
++DESCR("greater-than");
++DATA(insert OID = 1952 (  byteage		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	byteage - ));
++DESCR("greater-than-or-equal");
++DATA(insert OID = 1953 (  byteane		   PGUID 12 f t t t 2 f 16 "17 17" 100 0 0 100	byteane - ));
++DESCR("not equal");
++DATA(insert OID = 1954 (  byteacmp		   PGUID 12 f t t t 2 f 23 "17 17" 100 0 0 100	byteacmp - ));
++DESCR("less-equal-greater");
++
+  
+ /*
+  * prototypes for functions pg_proc.c
+diff --git a/src/include/utils/builtins.h b/src/include/utils/builtins.h
+index 5fbb2cd..a774309 100644
+--- a/src/include/utils/builtins.h
++++ b/src/include/utils/builtins.h
+@@ -7,7 +7,7 @@
+  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
+  * Portions Copyright (c) 1994, Regents of the University of California
+  *
+- * $Id: builtins.h,v 1.159 2001/08/09 18:28:18 petere Exp $
++ * $Id: builtins.h,v 1.160 2001/08/13 18:45:36 tgl Exp $
+  *
+  *-------------------------------------------------------------------------
+  */
+@@ -412,6 +412,13 @@ extern Datum byteaSetByte(PG_FUNCTION_ARGS);
+ extern Datum byteaSetBit(PG_FUNCTION_ARGS);
+ extern Datum binary_encode(PG_FUNCTION_ARGS);
+ extern Datum binary_decode(PG_FUNCTION_ARGS);
++extern Datum byteaeq(PG_FUNCTION_ARGS);
++extern Datum byteane(PG_FUNCTION_ARGS);
++extern Datum bytealt(PG_FUNCTION_ARGS);
++extern Datum byteale(PG_FUNCTION_ARGS);
++extern Datum byteagt(PG_FUNCTION_ARGS);
++extern Datum byteage(PG_FUNCTION_ARGS);
++extern Datum byteacmp(PG_FUNCTION_ARGS);
+ 
+ /* version.c */
+ extern Datum pgsql_version(PG_FUNCTION_ARGS);

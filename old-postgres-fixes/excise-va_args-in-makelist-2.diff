@@ -1,0 +1,62 @@
+diff --git a/src/backend/parser/analyze.c b/src/backend/parser/analyze.c
+index fe21804..6d3aa25 100644
+--- a/src/backend/parser/analyze.c
++++ b/src/backend/parser/analyze.c
+@@ -1983,7 +1983,7 @@ A_Expr_to_Expr(Node *ptr, bool *intersect_present)
+ 
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = OR_EXPR;
+-							expr->args = makeList(lexpr, rexpr, -1);
++							expr->args = makeList2(lexpr, rexpr);
+ 							result = (Node *) expr;
+ 							break;
+ 						}
+@@ -1995,7 +1995,7 @@ A_Expr_to_Expr(Node *ptr, bool *intersect_present)
+ 
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = AND_EXPR;
+-							expr->args = makeList(lexpr, rexpr, -1);
++							expr->args = makeList2(lexpr, rexpr);
+ 							result = (Node *) expr;
+ 							break;
+ 						}
+@@ -2006,7 +2006,7 @@ A_Expr_to_Expr(Node *ptr, bool *intersect_present)
+ 
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = NOT_EXPR;
+-							expr->args = makeList(rexpr, -1);
++							expr->args = makeList1(rexpr);
+ 							result = (Node *) expr;
+ 							break;
+ 						}
+diff --git a/src/backend/parser/parse_expr.c b/src/backend/parser/parse_expr.c
+index 7976f5e..6253f6e 100644
+--- a/src/backend/parser/parse_expr.c
++++ b/src/backend/parser/parse_expr.c
+@@ -203,7 +203,7 @@ transformExpr(ParseState *pstate, Node *expr, int precedence)
+ 
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = AND_EXPR;
+-							expr->args = makeList(lexpr, rexpr, -1);
++							expr->args = makeList2(lexpr, rexpr);
+ 							result = (Node *) expr;
+ 						}
+ 						break;
+@@ -221,7 +221,7 @@ transformExpr(ParseState *pstate, Node *expr, int precedence)
+ 									 typeidTypeName(exprType(rexpr)), typeidTypeName(BOOLOID));
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = OR_EXPR;
+-							expr->args = makeList(lexpr, rexpr, -1);
++							expr->args = makeList2(lexpr, rexpr);
+ 							result = (Node *) expr;
+ 						}
+ 						break;
+@@ -235,7 +235,7 @@ transformExpr(ParseState *pstate, Node *expr, int precedence)
+ 									 typeidTypeName(exprType(rexpr)), typeidTypeName(BOOLOID));
+ 							expr->typeOid = BOOLOID;
+ 							expr->opType = NOT_EXPR;
+-							expr->args = makeList(rexpr, -1);
++							expr->args = makeList1(rexpr);
+ 							result = (Node *) expr;
+ 						}
+ 						break;
