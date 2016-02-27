@@ -3,15 +3,19 @@
 VERS_BISECTING="REL8_4_0~885 REL8_4_0~857 REL8_4_0~830 REL8_4_0~816 REL8_4_0~802 REL8_4_0~788 REL8_4_0~775 REL8_4_0~567 REL8_4_0~360"
 VERS_BAD="REL7_0~1310 REL7_0~1296 REL7_0~949 REL7_0~243 REL7_0~1310 REL7_1~2184 REL7_0 REL7_0_3 REL6_5_3"
 
-VERS_QUARTERS="REL7_1~1964 REL7_1~1748 REL7_1~943 REL7_1~45 REL7_2~1771 REL7_2~1060 REL7_2~226 REL7_3~1793 REL7_3~1268 REL7_3~366 REL7_4~2136 REL7_4~1629 REL7_4~1073 REL7_4~350 REL8_0_0~2683 REL8_0_0~2132 REL8_0_0~1539 REL8_0_0~839 REL8_0_0~130 REL8_1_0~1542 REL8_1_0~884 REL8_1_0~247 REL8_2_0~2042 REL8_2_0~1581 REL8_2_0~1012 REL8_2_0~332 REL8_3_0~2316 REL8_3_0~1603 REL8_3_0~1189 REL8_3_0~732 REL8_3_0~119 REL8_4_0~1907 REL8_4_0~1498 REL8_4_0~1218 REL8_4_0~775 REL8_4_0~360 REL9_0_0~1855 REL9_0_0~1454 REL9_0_0~1249 REL9_0_0~627 REL9_0_0~202 REL9_1_0~1695 REL9_1_0~1328 REL9_1_0~628 REL9_2_0~1825 REL9_2_0~1396 REL9_2_0~984 REL9_2_0~551 REL9_3_0~1509 REL9_3_0~1099 REL9_3_0~789 REL9_3_0~390 REL9_4_0~1894 REL9_4_0~1617 REL9_4_0~1246 REL9_4_0~744 REL9_5_0~2370 REL9_5_0~1996 REL9_5_0~1569 REL9_5_0~1100 REL9_5_ALPHA1-20-g7b156c1 REL9_5_ALPHA1-489-ge06b2e1 REL9_5_ALPHA1-844-gdfcd9cb REL9_5_ALPHA1-972-g7dc09c1"
-VERS_BIQUART="REL7_1~1856 REL7_1~1345 REL7_1~494 REL7_2~908 REL7_2~1415 REL7_2~643 REL7_3~1009 REL7_3~1530 REL7_3~817 REL7_4~1251 REL7_4~1882 REL7_4~1351 REL7_4~711 REL8_0_0~1516 REL8_0_0~2407 REL8_0_0~1835 REL8_0_0~1189 REL8_0_0~484 REL8_1_0~483 REL8_1_0~1189 REL8_1_0~1213 REL8_1_0~565 REL8_2_0~1144 REL8_2_0~1811 REL8_2_0~1296 REL8_2_0~672 REL8_3_0~1324 REL8_3_0~1959 REL8_3_0~1396 REL8_3_0~960 REL8_3_0~425 REL8_4_0~1013 REL8_4_0~1702 REL8_4_0~1358 REL8_4_0~996 REL8_4_0~567 REL9_0_0~1107 REL9_0_0~1654 REL9_0_0~1351 REL9_0_0~938 REL9_0_0~414 REL9_1_0~948 REL9_1_0~1511 REL9_1_0~978 REL9_2_0~1226 REL9_2_0~1610 REL9_2_0~1190 REL9_2_0~767 REL9_3_0~1030 REL9_3_0~1304 REL9_3_0~944 REL9_3_0~589 REL9_4_0~1142 REL9_4_0~1755 REL9_4_0~1431 REL9_4_0~995 REL9_5_0~1557 REL9_5_0~2183 REL9_5_0~1782 REL9_5_0~1334"
+VERS_BAD2="REL9_0_0~1761 REL9_0_0~1536 REL9_0_0~1654 REL7_2~2074 REL7_2~1771 REL8_4_0~1799 REL8_4_0~1819"
+
+VERS_MORE="REL8_2_0~1410 REL8_2_0~119 REL8_2_0~2170 REL8_2_0~1811 REL8_3_0~1753 REL8_3_0~1076 REL8_4_0~1603 REL8_4_0~2268 REL8_4_0~856 REL8_4_0~481 REL8_4_0~151 REL8_2_0~119  REL8_0_0~277 REL8_1_0~1754 REL8_2_0~1409 REL8_2_0~119 REL8_2_0~2298 REL8_3_0~1752 REL8_3_0~1076 REL8_4_0~1603 REL8_4_0~2268 REL8_4_0~856 REL8_4_0~480 REL8_4_0~151 REL9_1_0~1867 REL9_1_0~382 REL9_2_0~309 REL9_4_0~1688 REL9_3_0~223 REL9_4_0~462 REL9_5_0~804 REL9_5_ALPHA1-683-ge073490 REL9_5_ALPHA1-299-g47ebbdc REL7_3~2135 REL7_4~2373 REL9_5_ALPHA1-1114-g57a6a72 REL9_0_0~1538 REL8_0_0~2934"
+
+VERS_QUARTERS="REL7_2~1060 REL7_2~226 REL7_3~1793 REL7_3~1268 REL7_3~366 REL7_4~2136 REL7_4~1629 REL7_4~1073 REL7_4~350 REL8_0_0~2683 REL8_0_0~2132 REL8_0_0~1539 REL8_0_0~839 REL8_0_0~130 REL8_1_0~1542 REL8_1_0~884 REL8_1_0~247 REL8_2_0~2042 REL8_2_0~1581 REL8_2_0~1012 REL8_2_0~332 REL8_3_0~2316 REL8_3_0~1603 REL8_3_0~1189 REL8_3_0~732 REL8_3_0~119 REL8_4_0~1907 REL8_4_0~1498 REL8_4_0~1218 REL8_4_0~775 REL8_4_0~360 REL9_0_0~1855 REL9_0_0~1454 REL9_0_0~1249 REL9_0_0~627 REL9_0_0~202 REL9_1_0~1695 REL9_1_0~1328 REL9_1_0~628 REL9_2_0~1825 REL9_2_0~1396 REL9_2_0~984 REL9_2_0~551 REL9_3_0~1509 REL9_3_0~1099 REL9_3_0~789 REL9_3_0~390 REL9_4_0~1894 REL9_4_0~1617 REL9_4_0~1246 REL9_4_0~744 REL9_5_0~2370 REL9_5_0~1996 REL9_5_0~1569 REL9_5_0~1100 REL9_5_ALPHA1-20-g7b156c1 REL9_5_ALPHA1-489-ge06b2e1 REL9_5_ALPHA1-844-gdfcd9cb REL9_5_ALPHA1-972-g7dc09c1"
+VERS_BIQUART="REL7_2~908 REL7_2~1415 REL7_2~643 REL7_3~1009 REL7_3~1530 REL7_3~817 REL7_4~1251 REL7_4~1882 REL7_4~1351 REL7_4~711 REL8_0_0~1516 REL8_0_0~2407 REL8_0_0~1835 REL8_0_0~1189 REL8_0_0~484 REL8_1_0~483 REL8_1_0~1189 REL8_1_0~1213 REL8_1_0~565 REL8_2_0~1144 REL8_2_0~1811 REL8_2_0~1296 REL8_2_0~672 REL8_3_0~1324 REL8_3_0~1959 REL8_3_0~1396 REL8_3_0~960 REL8_3_0~425 REL8_4_0~1013 REL8_4_0~1702 REL8_4_0~1358 REL8_4_0~996 REL8_4_0~567 REL9_0_0~1107 REL9_0_0~1654 REL9_0_0~1351 REL9_0_0~938 REL9_0_0~414 REL9_1_0~948 REL9_1_0~1511 REL9_1_0~978 REL9_2_0~1226 REL9_2_0~1610 REL9_2_0~1190 REL9_2_0~767 REL9_3_0~1030 REL9_3_0~1304 REL9_3_0~944 REL9_3_0~589 REL9_4_0~1142 REL9_4_0~1755 REL9_4_0~1431 REL9_4_0~995 REL9_5_0~1557 REL9_5_0~2183 REL9_5_0~1782 REL9_5_0~1334"
 VERS_RELEASES="REL7_1_3 REL7_2_8 REL7_3_9 REL7_3_21 REL7_4_30 REL8_0_26 REL8_1_23 REL8_2_23 REL8_3_23 REL8_4_22 REL9_0_23 REL9_1_19 REL9_2_14 REL9_3_10 REL9_4_5 REL9_5_0"
 VERS_SLIDES="REL8_2_0~1764 REL8_3_0~1344 REL8_3_0~1416 REL9_2_0~1071 REL9_2_0~771 REL9_3_0~735 REL9_4_0~1923 REL9_5_0~1488"
-VERS_SLIDES_BEFORE="REL8_2_0~1765 REL8_3_0~1345 REL8_3_0~1417 REL9_2_0~1072 REL9_2_0~772 REL9_3_0~736 REL9_4_0~1924 REL9_5_0~1489"
+VERS_SLIDES_BEFORE="REL8_2_0~1766 REL8_3_0~1349 REL8_3_0~1417 REL9_2_0~1072 REL9_2_0~777 REL9_3_0~744 REL9_4_0~1930 REL9_5_0~1497"
 
 #VERS=""
 
-VERS="${VERS_SLIDES} ${VERS_RELEASES} ${VERS_QUARTERS} ${VERS_BIQUART}"
+VERS="${VERS_SLIDES} ${VERS_SLIDES_BEFORE} ${VERS_RELEASES} ${VERS_QUARTERS} ${VERS_BIQUART} ${VERS_MORE}"
 #VERS="REL6_3_2"
 #VERS="REL6_5_3 REL6_4_2 REL6_3_2 REL6_2_1 REL6_1_1"
 #VERS="REL8_0_0 REL7_0 REL7_0~949 REL7_0~243 REL7_1~2184 REL7_1~1748 REL7_1~943 REL7_1~45"
@@ -82,9 +86,9 @@ for ver in $RVERS; do
     if [ -f ./configure ] ; then
 	echo "Configuring $ver to install into $prefix"
 
-	patch -F9  -p1 < $OLDFIXES/flex-autoconf-fix.diff >>$logfile 2>&1
-	patch -F9  -p1 < $OLDFIXES/fix_configure_cc_version.diff >>$logfile 2>&1
-	patch -F9  -p1 < $OLDFIXES/fix-sysvshmem-cast.diff >>$logfile 2>&1
+	patch  -p1 < $OLDFIXES/flex-autoconf-fix.diff >>$logfile 2>&1
+	patch  -p1 < $OLDFIXES/fix_configure_cc_version.diff >>$logfile 2>&1
+	patch  -p1 < $OLDFIXES/fix-sysvshmem-cast.diff >>$logfile 2>&1
 
 
 	configureargs="--prefix=$prefix"
@@ -119,13 +123,13 @@ for ver in $RVERS; do
     elif [ -f src/configure ] ; then
 	echo "Using old-style configuration approach for release <= 7.0"
 	echo "Configuring $ver to install into $prefix"
-	patch -F2  -f -p1 < $OLDFIXES/70-fixes2.diff  >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/653-fixes.diff  >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/63-fixes.diff  >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/62-fixes.diff  >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/61-fixes.diff  >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/fix-genbki-stray-backslash.diff >>$logfile 2>&1
-	patch -F2  -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/70-fixes2.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/653-fixes.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/63-fixes.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/62-fixes.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/61-fixes.diff  >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/fix-genbki-stray-backslash.diff >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
 
 	cd src
 
@@ -157,28 +161,30 @@ for ver in $RVERS; do
 
     # Desperate measures
     if [[ $gitdate < "2000-08-03" ]] ; then
-	patch -F2  -f -p1 < $OLDFIXES/postgresql-6.5.2-alpha.patch >>$logfile 2>&1
+	patch  -f -p1 < $OLDFIXES/postgresql-6.5.2-alpha.patch >>$logfile 2>&1
     fi
     # https://access.redhat.com/solutions/37218
-    patch -F2  -f -p1 < $OLDFIXES/linux-system-returns-echild.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/excise-va_args-in-makelist.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/excise-va_args-in-makelist-2.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-perl-configure-test.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-ecpg-missing-semicolon.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-ecpg-descriptors.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-ecpg-strndup.diff >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-ecpg-daytab.diff  >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-datetime-datetktbl.diff  >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-genbki-ame.diff  >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-x86_64.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/yyleng-fix.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-readline2.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix_ecpg_bison_yyerror.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno3.diff   >>$logfile 2>&1
-    patch -F2  -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/linux-system-returns-echild.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/excise-va_args-in-makelist.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/excise-va_args-in-makelist-2.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-perl-configure-test.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-ecpg-missing-semicolon.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-ecpg-descriptors.diff >>$logfile 2>&1
+    patch -F1  -f -p1 < $OLDFIXES/fix-ecpg-strndup.diff >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-ecpg-daytab.diff  >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-datetime-datetktbl.diff  >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-stray-default.diff  >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-genbki-ame.diff  >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-x86_64.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/yyleng-fix.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-readline2.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix_ecpg_bison_yyerror.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno2.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-postgres-h-extern-errno3.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-plpgsql-bison.diff   >>$logfile 2>&1
+    patch  -f -p1 < $OLDFIXES/fix-bison-base_yyscan_t-ordering.diff   >>$logfile 2>&1
+
     f="$(find . -name preproc.y)"
     if [[ -n "$f" ]] ; then
 	echo "Hacking preproc.y to remove duplicates..."

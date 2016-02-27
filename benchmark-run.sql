@@ -23,6 +23,7 @@ select count(*) as warmup from t;
 select count(*) as seqscan from t;
 select count(*) as seqscan from t;
 select count(*) as seqscan from t;
+select count(*) as seqscan from t;
 
 select i as sort_text    from t order by word  offset 1485661;
 select i as sort_binary  from t order by wordb offset 1485661;
@@ -60,3 +61,5 @@ select i as sort_t100  from t order by word  offset 99  limit 1;
 select i as sort_t100  from t order by word  offset 99  limit 1;
 -- select i as sort_t1000 from t order by word  offset 999 limit 1;
 
+select count(*) as seqscan from t;
+select count(*) as seqscan from t;

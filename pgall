@@ -19,9 +19,14 @@ export LC_MESSAGES=C
 
 RELS="$(for v in /usr/local/oldpgsql/2* ; do basename "$v"  | sed 's,^[0-9]*-[0-9]*[0-9]*-,,' ; done | sort -R)"
 
+NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
+N=0
+
 for ver in $RELS ; do
     d="$(echo /usr/local/oldpgsql/*-$ver)"
     rel="$(basename $d)"
+
+    N=$(( N + 1 ))
 
     if [[ ! -f $d/bin/initdb ]] ; then
 	continue
@@ -38,6 +43,12 @@ for ver in $RELS ; do
     db="$TESTDIR/d-$rel"
     log="$TESTDIR/l-$rel.log"
     out="$TESTDIR/o-$rel.out"
+
+    echo
+    echo "========================================================================"
+    echo "Testing $rel ($N/$NRELS) logs in $log"
+    echo "========================================================================"
+
 
     if [ ! -d $db ] ; then
        echo "Running initdb for $rel in $db"
