@@ -264,7 +264,7 @@ for ver in $RVERS; do
     make install  >>$logfile 2>&1 || echo "make install failed"
     echo "Running Make install into $prefix...done"
 
-    echo "Running initdb into /var/tmp/d-$ver..."
-    PATH=$prefix/bin:$PATH LD_LIBRARY_PATH=$prefix/lib $prefix/bin/initdb -D /var/tmp/d-$ver  >>$logfile 2>&1
-    echo "Running initdb into /var/tmp/d-$ver...done"
+#    echo "Running initdb into /var/tmp/d-$ver..."
+#    PATH=$prefix/bin:$PATH LD_LIBRARY_PATH=$prefix/lib $prefix/bin/initdb -D /var/tmp/d-$ver  >>$logfile 2>&1
+#    echo "Running initdb into /var/tmp/d-$ver...done"
 done

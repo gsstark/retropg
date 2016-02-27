@@ -17,7 +17,7 @@ export LC_NUMERIC=C # c.f. REL7_3~975
 export LC_TIME=C
 export LC_MESSAGES=C
 
-RELS="$(for v in /usr/local/oldpgsql/2* ; do basename "$v"  | sed 's,^[0-9]*-[0-9]*[0-9]*-,,' ; done | sort -R)"
+RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed 's,.*/[0-9]*-[0-9]*-[0-9]*-\([^/]*\)/bin/initdb,\1,' ; done | sort -R)"
 
 NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
 N=0
