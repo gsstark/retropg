@@ -124,7 +124,7 @@ for ver in $RELS ; do
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( ( $psql -X -f $here/benchmark-run-x4.sql; $psql -X -f $here/benchmark-run-x4.sql )  >>$out 2>&1 || echo psql exited with status $?)
+    time ( ( $psql -X -f $here/benchmark-run-x8.sql; $psql -X -f $here/benchmark-run-x8.sql )  >>$out 2>&1 || echo psql exited with status $?)
     unset TIMEFORMAT
 
     trap - EXIT
