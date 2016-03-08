@@ -21,7 +21,7 @@ my $current_testdate;
 
 my $SRCDIR = "/home/stark/src/postgres";
 
-print(join("\t",
+print(join(",",
            'Release Date',
            'Test Name',
            'Time (ms)',
@@ -91,7 +91,7 @@ while (<>) {
     if (/(work|sort)_mem/) {
         $read_work_mem = 1;
 
-    } elsif (/^ *(sort[a-z0-9_]*|seqscan) *$/) {
+    } elsif (/^ *(sort[a-z0-9_]*|seqscan[a-z0-9_]*) *$/) {
         $current_testname = $1;
         $read_test = 1;
 
