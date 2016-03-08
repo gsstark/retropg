@@ -47,6 +47,9 @@ select i as sort_t100_x8    from t,x8 order by word  offset 99  limit 1;
 select count(*) as seqscan_x8 from t,x8;
 select count(*) as seqscan_x8 from t,x8;
 
+-- PG 8.0 refuses values greater than this
+set sort_mem=2097151;
+set work_mem=2097151;
 set work_mem=8192000;
 set sort_mem=8192000;
 

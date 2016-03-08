@@ -1,3 +1,6 @@
+-- PG 8.0 refuses values greater than this
+set sort_mem=2097151;
+set work_mem=2097151;
 set work_mem=8192000;
 set sort_mem=8192000;
 
