@@ -59,10 +59,8 @@ while (<>) {
         # If we are on a point release we need to find the date of the first point release
         my $vers_for_date;
         if ($current_vers =~ /^REL[0-9_]*$/) {
-            my ($major) = $current_vers =~ /^(REL[0-9]*_[0-9]*)_.*$/;
-            $vers_for_date = `cd $SRCDIR ; git describe --tags --abbrev=0 --match '${major}_0' $current_vers 2>/dev/null`;
-            $vers_for_date = `cd $SRCDIR ; git describe --tags --abbrev=0 --match '${major}' $current_vers 2>/dev/null`
-                unless $vers_for_date;
+			# Use fork point of branch not final release date to avoid anomalys on graph
+			$vers_for_date = `cd $SRCDIR; git merge-base $current_vers HEAD`;
         } else {
             $vers_for_date = $current_vers;
         }
