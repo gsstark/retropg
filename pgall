@@ -141,10 +141,53 @@ for ver in $RELS ; do
     sync
     sleep 1
 
-    echo -n "Running Benchmark on $rel..."
+#    echo -n "Running Benchmark on $rel..."
+#    TIMEFORMAT=%0lR
+#    time ( ( $psql -X -f $here/benchmark-run-x8.sql; $psql -X -f $here/benchmark-run-x8.sql )  >>$out 2>&1 || echo psql exited with status $?)
+#    unset TIMEFORMAT
+
+	LOCKED_KB="$(( ( 32 * 1024 * 1024 ) - ( 300 * 1024 ) ))"
+	echo -n "Pinning ${LOCKED_KB}kB of memory..."
+	$here/pin $LOCKED_KB &
+	pinpid=$!
+    trap "kill $! ; $bin/pg_ctl -D $db stop" EXIT
+	nwaited=0
+	while kill -0 $pinpid && [[ $nwaited < 30 && $LOCKED_KB > $(awk '/Mlocked/ {print $2}' < /proc/meminfo) ]]; do
+		sleep 1
+		nwaited=$(( $nwaited + 1 ))
+		echo "."
+	done
+	if ! kill -0 $pinpid; then
+		echo "Pin process failed or died"
+		exit 1
+	fi
+	actual_locked_kb=$(awk '/Mlocked/ {print $2}' < /proc/meminfo)
+	if [[ $LOCKED_KB > $actual_locked_kb ]]; then
+		echo "Tried to pin ${LOCKED_KB}kB but only managed to lock $actual_locked_kb"
+		exit 1
+	fi
+	echo "done"
+
+    echo -n "Running Benchmark on $rel with ${LOCKED_KB}kB memory pinned..."
     TIMEFORMAT=%0lR
-    time ( ( $psql -X -f $here/benchmark-run-x8.sql; $psql -X -f $here/benchmark-run-x8.sql )  >>$out 2>&1 || echo psql exited with status $?)
+    time ( ( $psql -X -f $here/benchmark-run-x8-just-text.sql )  >>$out.tmp 2>&1 || echo psql exited with status $?)
     unset TIMEFORMAT
+	if ! kill -0 $pinpid; then
+		echo "Pin process failed or died during benchmark"
+		exit 1
+	fi
+	actual_locked_kb=$(awk '/Mlocked/ {print $2}' < /proc/meminfo)
+	if [[ $LOCKED_KB > $actual_locked_kb ]]; then
+		echo "Tried to pin ${LOCKED_KB}kB but only $actual_locked_kb was locked at end of benchmark"
+		exit 1
+	fi
+	# only if memory was actually locked the whole time save the results
+	cat $out.tmp >> $out
+
+	echo -n "Terminating pin.c process..."
+	kill $pinpid
+	wait $pinpid
+	echo "done"
 
     trap - EXIT
     $bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
