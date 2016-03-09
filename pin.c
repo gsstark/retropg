@@ -8,7 +8,7 @@
 
 
 int main(int argc, char *argv[], char *envp[]) {
-	size_t nbytes = 4096;
+	size_t nkb = 4096;
 	void *ptr;
 	int retval;
 	int pipefd[2];
@@ -17,9 +17,9 @@ int main(int argc, char *argv[], char *envp[]) {
 	struct timeval tv;
 
 	if (argc > 1) {
-		nbytes=atoll(argv[1]);
-		if (!nbytes) {
-			fprintf(stderr, "Usage: pin bytes\n");
+		nkb=atoll(argv[1]);
+		if (!nkb) {
+			fprintf(stderr, "Usage: pin kb\n");
 			exit(1);
 		}
 	}
@@ -29,17 +29,17 @@ int main(int argc, char *argv[], char *envp[]) {
 	}
 
 	if (nsec)
-		fprintf(stdout, "Allocated %zd bytes and waiting %ds\n", nbytes, nsec);
+		fprintf(stdout, "Allocated %zdkB and waiting %ds\n", nkb, nsec);
 	else
-		fprintf(stdout, "Allocated %zd bytes and waiting indefinitely\n", nbytes);
+		fprintf(stdout, "Allocated %zdkB and waiting indefinitely\n", nkb);
 
-	ptr = malloc(nbytes);
+	ptr = malloc(nkb * 1024);
 	if (!ptr) {
-		fprintf(stderr, "Failed to allocate %zd bytes\n", nbytes);
+		fprintf(stderr, "Failed to allocate %zdkB\n", nkb);
 		exit(1);
 	}
 
-	retval = mlock(ptr, nbytes);
+	retval = mlock(ptr, nkb * 1024);
 	if (retval < 0) {
 		perror("mlock");
 		exit(1);

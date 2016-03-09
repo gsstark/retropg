@@ -32,8 +32,8 @@ for ver in $RELS ; do
 		elapsed=$(( ( $now - $start ) / $N ))
 		remaining=$(( ( $NRELS - $N ) * $elapsed ))
 		eta=$(( $now + $remaining ))
-		remaining_str="$(date +%dd%Hh%mm -d @$remaining)"
-		eta_str="$( date -d @$eta)"
+		remaining_str="$( LC_ALL=C date +%Hh%mm -d @$remaining )"
+		eta_str="$( LC_ALL=C date -d @$eta )"
 	fi
 
 
