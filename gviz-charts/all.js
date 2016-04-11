@@ -102,8 +102,8 @@ function drawSheetName() {
 					 'E/1000 "Sort float",'+
 					 'F/1000 "Sort integer",'+
 					 'G/1000 "Sort text Limit 100",'+
-					 'H/1000 "Sort text (in cache)",'+
-					 'I/1000 "Sort text (in work_mem)"'+
+					 'H/1000 "Sort text (external sort)",'+
+					 'I/1000 "Sort text (quicksort)"'+
 					 ''
 					);
     var query = new google.visualization.Query(
@@ -162,8 +162,8 @@ function handleSampleDataQueryResponse(response) {
 	[new Date(2011,11,07),'REL9_2_0~1071', 15, 'Sortsupport'],
 //	[new Date(2013,00,17),'REL9_3_0~735', 1, 'Use all of work_mem'],
 //	[new Date(2013,05,27),'REL9_4_0~1923', 1, '>1GB sort array'],
-	[new Date(2015,06,02),'REL9_5_ALPHA1-20-g7b156c1', 57, 'Abbreviated Keys'],
-	[new Date(2015,10,18),'REL9_5_ALPHA1-683-ge073490', 31, 'Cache strxfrm'],
+	[new Date(2015,06,02),'REL9_5_ALPHA1-20-g7b156c1', 57, 'strxfrm'],
+	[new Date(2015,10,18),'REL9_5_ALPHA1-683-ge073490', 31, 'Cache'],
     ]);
 
 
