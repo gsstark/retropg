@@ -24,10 +24,10 @@ select count(*) from x8;
 checkpoint;
 \! sync
 \! sleep 5
-select count(*) as warmup_x8_lowmem2 from t,x8;
+select count(*) as warmup_x8_lowmem from t,x8;
 
-select count(*) as seqscan_x8_lowmem2 from t,x8;
-select count(*) as seqscan_x8_lowmem2 from t,x8;
+select count(*) as seqscan_x8_lowmem from t,x8;
+select count(*) as seqscan_x8_lowmem from t,x8;
 
-select i as sort_text_x8_lowmem2    from t,x8 order by word  offset 11885295;
-select i as sort_text_x8_lowmem2    from t,x8 order by word  offset 11885295;
+select i as sort_text_x8_lowmem    from t,x8 order by word  offset 11885295;
+select i as sort_text_x8_lowmem    from t,x8 order by word  offset 11885295;
