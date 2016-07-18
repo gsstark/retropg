@@ -127,7 +127,6 @@ for ver in $RELS ; do
 		echo "Creating and initializing db for $rel"
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb $createdbargs
 
-		/usr/local/oldpgsql/2016-04-09-REL9_5_ALPHA1-1556-g80cf189/bin/pgbench -i -s 300
     fi
 
     #PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
@@ -138,6 +137,14 @@ for ver in $RELS ; do
 		# We need this version for \timing
 		psql="$binfallback/psql"
     fi
+
+    sync
+    sleep 1
+
+    echo -n "Initializing pgbench on $rel..."
+    TIMEFORMAT=%0lR
+	time ( ( /usr/local/oldpgsql/2016-04-09-REL9_5_ALPHA1-1556-g80cf189/bin/pgbench -i -s 300 ) >>$out 2>&1 || echo pgbench exited with status $?)
+    unset TIMEFORMAT
 
     sync
     sleep 1
