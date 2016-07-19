@@ -143,7 +143,7 @@ for ver in $RELS ; do
 
     echo -n "Initializing pgbench on $rel..."
     TIMEFORMAT=%0lR
-	time ( ( /usr/local/oldpgsql/2016-04-09-REL9_5_ALPHA1-1556-g80cf189/bin/pgbench -i -s 300 ) >>$out 2>&1 || echo pgbench exited with status $?)
+	time ( ( /usr/local/pgsql/bin/pgbench -i -s 300 ) >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
     sync
@@ -151,7 +151,7 @@ for ver in $RELS ; do
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( ( /usr/local/oldpgsql/2016-04-09-REL9_5_ALPHA1-1556-g80cf189/bin/pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
+    time ( ( /usr/local/pgsql/bin/pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
     trap - EXIT
