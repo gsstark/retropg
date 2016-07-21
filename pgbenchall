@@ -105,7 +105,9 @@ for ver in $RELS ; do
     fi
 
 	if grep checkpoint_segments $db/postgresql.conf; then
-		pgoptions = "$global_pgoptions -c checkpoint_segments=32"
+		pgoptions="$global_pgoptions -c checkpoint_segments=32"
+	else
+		pgoptions="$global_pgoptions"
 	fi
 
     trap "$bin/pg_ctl -D $db stop" EXIT
