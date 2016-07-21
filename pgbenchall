@@ -12,6 +12,8 @@ encoding=unicode
 wordlist=/usr/share/dict/ukrainian
 scale=300
 
+pgbench=/usr/local/bin/pgbench
+
 export LC_ALL=$locale
 export LC_COLLATE=$LC_ALL
 export LC_CTYPE=$LC_ALL
@@ -137,33 +139,19 @@ for ver in $RELS ; do
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
 		echo "Initializing pgbench scale factor $scale on $rel..." >> $out
 		TIMEFORMAT=%0lR
-		time ( ( PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
+		time ( ( $pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
 		unset TIMEFORMAT
 	fi
-
-    #PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
-
-#    if [[ "2003" < "$rel" ]] ; then
-#		psql="$bin/psql"
-#    else
-#		# We need this version for \timing
-#		psql="$binfallback/psql"
-#    fi
 
     sync
     sleep 1
 
-#    echo -n "Initializing pgbench on $rel..."
-#    TIMEFORMAT=%0lR
-#	time ( ( /usr/local/pgsql/bin/pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
-#    unset TIMEFORMAT
-#
     sync
     sleep 1
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( ( /usr/local/pgsql/bin/pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
+    time ( ( $pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
     trap - EXIT
