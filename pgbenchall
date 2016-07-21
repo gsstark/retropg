@@ -26,6 +26,11 @@ RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed 's,.*/[0
 NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
 N=0
 
+if [[ -e /tmp/.s.PGSQL.5432 ]] ; then
+	echo /tmp/.s.PGSQL.5432 already exists
+	exit 1
+fi
+
 for ver in $RELS ; do
     d="$(echo /usr/local/oldpgsql/*-$ver)"
     rel="$(basename $d)"
@@ -96,6 +101,7 @@ for ver in $RELS ; do
 
     if [[ -e /tmp/.s.PGSQL.5432 ]] ; then
 		echo /tmp/.s.PGSQL.5432 already exists
+		exit 1
     fi
 
     trap "$bin/pg_ctl -D $db stop" EXIT
