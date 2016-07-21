@@ -12,7 +12,7 @@ encoding=unicode
 wordlist=/usr/share/dict/ukrainian
 scale=300
 
-pgbench=/usr/local/bin/pgbench
+pgbench=/usr/local/pgsql/bin/pgbench
 
 export LC_ALL=$locale
 export LC_COLLATE=$LC_ALL
@@ -104,7 +104,7 @@ for ver in $RELS ; do
 		exit 1
     fi
 
-	if grep checkpoint_segments $db/postgresql.conf; then
+	if grep checkpoint_segments $db/postgresql.conf >/dev/null; then
 		pgoptions="$global_pgoptions -c checkpoint_segments=32"
 	else
 		pgoptions="$global_pgoptions"
