@@ -5,11 +5,12 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-pgoptions="-c shared_buffers=16384"
+pgoptions="-c shared_buffers=16384 -c checkpoint_segments=32"
 
 locale=uk_UA.UTF-8
 encoding=unicode
 wordlist=/usr/share/dict/ukrainian
+scale=300
 
 export LC_ALL=$locale
 export LC_COLLATE=$LC_ALL
@@ -29,8 +30,8 @@ for ver in $RELS ; do
 
 	now="$(date +%s)"
 	if [[ $N > 0 ]]; then
-		elapsed=$(( ( $now - $start ) / $N ))
-		remaining=$(( ( $NRELS - $N ) * $elapsed ))
+		average=$(( ( $now - $start ) / $N ))
+		remaining=$(( ( $NRELS - $N ) * $average ))
 		eta=$(( $now + $remaining ))
 		remaining_str="$( LC_ALL=C date +%Hh%MM -d @$remaining )"
 		eta_str="$( LC_ALL=C date -d @$eta )"
@@ -62,10 +63,12 @@ for ver in $RELS ; do
     echo
     echo "========================================================================"
     echo "Testing $rel ($N/$NRELS)"
+	echo "Current Time: $(date)"
 	echo "Logs in:  	$log"
 	echo "Output in: 	$out"
 	echo "Remaining: 	$remaining_str"
   	echo "ETA:   	  	$eta_str"
+	echo "   (based on average=$average remaining=$remaining)"
     echo "========================================================================"
 
 
@@ -129,23 +132,33 @@ for ver in $RELS ; do
 
     fi
 
+    rows=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -t -X -c 'select count(*) from pgbench_branches' || echo 0)
+		
+	if [ $rows -ne $scale ] ; then
+		echo -n "Initializing pgbench scale factor $scale on $rel..."
+		echo "Initializing pgbench scale factor $scale on $rel..." >> $out
+		TIMEFORMAT=%0lR
+		time ( ( PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
+		unset TIMEFORMAT
+	fi
+
     #PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -X -f $here/benchmark-fix.sql
 
-    if [[ "2003" < "$rel" ]] ; then
-		psql="$bin/psql"
-    else
-		# We need this version for \timing
-		psql="$binfallback/psql"
-    fi
+#    if [[ "2003" < "$rel" ]] ; then
+#		psql="$bin/psql"
+#    else
+#		# We need this version for \timing
+#		psql="$binfallback/psql"
+#    fi
 
     sync
     sleep 1
 
-    echo -n "Initializing pgbench on $rel..."
-    TIMEFORMAT=%0lR
-	time ( ( /usr/local/pgsql/bin/pgbench -i -s 300 ) >>$out 2>&1 || echo pgbench exited with status $?)
-    unset TIMEFORMAT
-
+#    echo -n "Initializing pgbench on $rel..."
+#    TIMEFORMAT=%0lR
+#	time ( ( /usr/local/pgsql/bin/pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
+#    unset TIMEFORMAT
+#
     sync
     sleep 1
 
@@ -158,3 +171,8 @@ for ver in $RELS ; do
     $bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
 
 done
+
+echo
+echo "========================================================================"
+echo " All done "
+echo "========================================================================"
