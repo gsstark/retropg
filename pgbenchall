@@ -5,7 +5,7 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-pgoptions="-c shared_buffers=16384 -c checkpoint_segments=32"
+global_pgoptions="-c shared_buffers=16384"
 
 locale=uk_UA.UTF-8
 encoding=unicode
@@ -104,10 +104,14 @@ for ver in $RELS ; do
 		exit 1
     fi
 
+	if grep checkpoint_segments $db/postgresql.conf; then
+		pgoptions = "$global_pgoptions -c checkpoint_segments=32"
+	fi
+
     trap "$bin/pg_ctl -D $db stop" EXIT
     $bin/pg_ctl -D $db -l $log -o "$pgoptions" start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db $pgoptions > $log 2>&1 &
     echo -n "Waiting for $rel to start up..."
-    for i in `seq 1 30` ; do
+    for i in `seq 1 60` ; do
 		sleep 1
     	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
 		echo -n .
