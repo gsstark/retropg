@@ -63,12 +63,11 @@ for ver in $RELS ; do
     echo
     echo "========================================================================"
     echo "Testing $rel ($N/$NRELS)"
-	echo "Current Time: $(date)"
+	echo "Current Time:	$(LC_ALL=C date)"
 	echo "Logs in:  	$log"
 	echo "Output in: 	$out"
-	echo "Remaining: 	$remaining_str"
+	echo "Remaining: 	$remaining_str (average=$average remaining=$remaining)"
   	echo "ETA:   	  	$eta_str"
-	echo "   (based on average=$average remaining=$remaining)"
     echo "========================================================================"
 
 
@@ -132,7 +131,7 @@ for ver in $RELS ; do
 
     fi
 
-    rows=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -t -X -c 'select count(*) from pgbench_branches' || echo 0)
+    rows=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
 		
 	if [ $rows -ne $scale ] ; then
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
