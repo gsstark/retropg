@@ -166,9 +166,17 @@ for ver in $RELS ; do
     time ( ( $pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
-    trap - EXIT
-    $bin/pg_ctl -t 300 -D $db stop -m fast || echo pg_ctl exited with status $?
-
+	echo -n "Shutting down server..."
+	# try to settle i/o down to avoid pg_ctl stop taking too long
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
+	sync
+	sleep 10
+	
+	trap - EXIT
+	exportt PGCTLTIMEOUT=300
+	while [[ -e /tmp/.s.PGSQL.5432 ]] ; then
+		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $? retrying
+	done
 done
 
 echo
