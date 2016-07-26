@@ -174,7 +174,7 @@ for ver in $RELS ; do
 	
 	trap - EXIT
 	export PGCTLTIMEOUT=300
-	while [[ -e /tmp/.s.PGSQL.5432 ]] ; then
+	while [[ -e /tmp/.s.PGSQL.5432 ]] ; do
 		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $? retrying
 	done
 done
