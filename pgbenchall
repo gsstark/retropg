@@ -163,7 +163,7 @@ for ver in $RELS ; do
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
-    time ( ( $pgbench -T 60 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
+    time ( ( $pgbench -T 900 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
 	echo -n "Shutting down server..."
