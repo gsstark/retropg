@@ -40,6 +40,7 @@ for ver in $RELS ; do
     db="$TESTDIR/d-$rel"
     bin="$d/bin"
     lib="$d/lib"
+	log=sqlall.log
 
 	echo $rel
 
