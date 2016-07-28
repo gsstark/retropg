@@ -95,7 +95,9 @@ while (<>) {
 
 	if (/^transaction type/ || eof) {
 		# about to start a new test or reached the end of an input file
-		if (!$scaling_factor || !$query_mode || !$nclients || !$nthreads || !$duration || !$ntransactions || !$tps) {
+		if (!defined $scaling_factor) {
+			# first test of a file
+		} elsif (!defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
 			warn "missing data (scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
 		} else {
 			print(join(",",
