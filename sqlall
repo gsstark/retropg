@@ -2,7 +2,7 @@
 
 set -e
 
-sql="$ARGV[1]"
+sql="$1"
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
