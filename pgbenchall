@@ -147,8 +147,10 @@ for ver in $RELS ; do
 
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
-		
-	if [[ $branches -ne $scale || $tellers -ne $(( $scale * 10 )) ]] ; then
+	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+
+	if [[ $branches -ne $scale || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
 		echo "Initializing pgbench scale factor $scale on $rel..." >> $out
 		TIMEFORMAT=%0lR
@@ -156,22 +158,36 @@ for ver in $RELS ; do
 		unset TIMEFORMAT
 	fi
 
+    branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+
+	if [[ $branches -ne $scale || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
+		echo "Found discrepancy in initialized database"
+		echo "branches=$branches tellers=$tellers npkey=$npkey nrels=$nrels"
+		echo "Skipping $rel due to failure to initialize pgbench"
+	else
+
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
     sync
-    sleep 1
+    sleep 5
 
     sync
-    sleep 1
+    sleep 5
 
     echo -n "Running Benchmark on $rel..."
     TIMEFORMAT=%0lR
     time ( ( $pgbench -T 900 -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
     unset TIMEFORMAT
 
+	fi
+
 	echo -n "Shutting down server..."
 	# try to settle i/o down to avoid pg_ctl stop taking too long
 	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
 	sync
-	sleep 10
+	sleep 5
 	
 	trap - EXIT
 	export PGCTLTIMEOUT=300
