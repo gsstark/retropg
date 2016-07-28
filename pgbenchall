@@ -145,9 +145,10 @@ for ver in $RELS ; do
 
     fi
 
-    rows=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
 		
-	if [ $rows -ne $scale ] ; then
+	if [[ $branches -ne $scale || $tellers -ne $(( $scale * 10 )) ]] ; then
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
 		echo "Initializing pgbench scale factor $scale on $rel..." >> $out
 		TIMEFORMAT=%0lR
