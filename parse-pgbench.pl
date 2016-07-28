@@ -97,23 +97,22 @@ while (<>) {
 		# about to start a new test or reached the end of an input file
 		if (!$scaling_factor || !$query_mode || !$nclients || !$nthreads || !$duration || !$ntransactions || !$tps) {
 			warn "missing data (scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
-			next;
+		} else {
+			print(join(",",
+					   $current_gitdate_ymd,
+					   $current_gitdate_iso,
+					   $current_testname,
+					   $current_time,
+					   $current_vers,
+					   $scaling_factor,
+					   $query_mode,
+					   $nclients,
+					   $nthreads,
+					   $duration,
+					   $ntransactions,
+					   $tps),
+				  "\n");
 		}
-		
-		print(join(",",
-				   $current_gitdate_ymd,
-				   $current_gitdate_iso,
-				   $current_testname,
-				   $current_time,
-				   $current_vers,
-				   $scaling_factor,
-				   $query_mode,
-				   $nclients,
-				   $nthreads,
-				   $duration,
-				   $ntransactions,
-				   $tps),
-			  "\n");
 
 		undef $scaling_factor;
 		undef $query_mode;
