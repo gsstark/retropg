@@ -12,6 +12,8 @@ my $current_gitvers;
 my $current_gitdate_ymd;
 my $current_gitdate_iso;
 
+my ($scaling_factor, $query_mode, $nclients, $nthreads, $duration, $ntransactions, $tps, %latency);
+
 my $SRCDIR = "/home/stark/src/postgres";
 
 print(join(",",
