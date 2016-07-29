@@ -121,8 +121,8 @@ for ver in $RELS ; do
     if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' ; then
 		echo done
     else
-		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
 		trap - EXIT
+		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
 		continue
     fi
 
@@ -147,10 +147,11 @@ for ver in $RELS ; do
 
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
 	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
 	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
 
-	if [[ $branches -ne $scale || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
+	if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
 		echo "Initializing pgbench scale factor $scale on $rel..." >> $out
 		TIMEFORMAT=%0lR
