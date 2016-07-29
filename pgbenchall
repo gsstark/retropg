@@ -147,7 +147,7 @@ for ver in $RELS ; do
 
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
-    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
 	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
 	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
 
