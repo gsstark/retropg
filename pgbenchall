@@ -5,7 +5,8 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-global_pgoptions="-c shared_buffers=1048576"
+shared_buffers=1048576
+global_pgoptions="-c shared_buffers=$shared_buffers"
 
 locale=uk_UA.UTF-8
 encoding=unicode
@@ -175,6 +176,8 @@ for ver in $RELS ; do
 		echo "Skipping $rel due to failure to initialize pgbench"
 	else
 
+
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
 		sync
 		sleep 5
