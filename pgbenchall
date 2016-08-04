@@ -5,7 +5,7 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-global_pgoptions="-c shared_buffers=16384"
+global_pgoptions="-c shared_buffers=1048576"
 
 locale=uk_UA.UTF-8
 encoding=unicode
