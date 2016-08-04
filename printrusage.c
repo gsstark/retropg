@@ -48,4 +48,5 @@ int main (int argc, char *argv[], char *envp[]) {
 		   r.ru_maxrss, r.ru_ixrss, r.ru_idrss, r.ru_isrss, r.ru_minflt, r.ru_majflt, 
 		   r.ru_nswap, r.ru_inblock, r.ru_oublock, r.ru_msgsnd, r.ru_msgrcv, 
 		   r.ru_nsignals, r.ru_nvcsw, r.ru_nivcsw);
+	exit(0);
 }
