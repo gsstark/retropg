@@ -177,7 +177,7 @@ for ver in $RELS ; do
 	else
 
 
-		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null
+		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null)"
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
 		sync
 		sleep 5
@@ -190,7 +190,7 @@ for ver in $RELS ; do
 		echo "========================================================================" >> $out
 		echo "Testing $rel"                                                             >> $out
 		echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
-
+		echo "Shared Buffers: $shared_buffers_setting"                                  >> $out
 		# start iostat to run for $duration seconds and then print a single output
 		iostat -x -y $(( $duration + 30 )) 1 >> $out &
 		iostatpid=$!
