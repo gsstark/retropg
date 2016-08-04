@@ -113,7 +113,7 @@ while (<>) {
 		@iostat_cpu{qw(user nice system iowait steal idle)} = split;
 	} elsif (/^Device/) {
 		$read_iostat_io = 1;
-	} elsif ($read_iostat_io && /^(sd|md)/n) {
+	} elsif ($read_iostat_io && /^(?:sd|md)/) {
 		my ($drive, @stats) = split;
 		my %stats;
 		@stats{qw(rrqmps wrqmps rps wps rkbps wkbps avgrqsz avgqusz await r_await w_await svctm utilization)} = @stats;
