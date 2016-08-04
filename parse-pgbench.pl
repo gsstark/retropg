@@ -4,23 +4,47 @@ use warnings;
 
 use Date::Parse;
 use DateTime;
+use Data::Dumper;
 
 my $current_testname = 'pgbench';
-my $current_time = 'unknown';
 my $current_vers;
 my $current_gitvers;
 my $current_gitdate_ymd;
 my $current_gitdate_iso;
 
-my ($scaling_factor, $query_mode, $nclients, $nthreads, $duration, $ntransactions, $tps, %latency);
+my $scaling_factor;
+my $query_mode;
+my $nclients;
+my $nthreads;
+my $duration;
+my $ntransactions;
+my $tps;
+my %latency;
+my $start_time;
+my $kernel_vers;
+my $read_iostat_cpu = 0;
+my $read_iostat_io = 0;
+my %iostat_cpu;
+my %iostat_io;
+my $end_time;
 
-my $SRCDIR = "/home/stark/src/postgres";
+my @SRCDIRS = ("/home/stark/src/postgres", 
+			   "/home/stark/src/pg/postgresql-master");
+my $SRCDIR;
+
+for (@SRCDIRS) {
+	$SRCDIR=$_ and last if -d $_;
+}
+die "Couldn't find Postgres source" unless defined $SRCDIR;
 
 print(join(",",
 		   'Release Date',
 		   'Release Timestamp',
 		   'Test Name',
-		   'Test Timestamp',
+		   'Test Duration',
+		   'Test Start Time',
+		   'Test End Time',
+		   'Kernel Version',
 		   'Release Tag',
 		   'Scaling Factor',
 		   'Query Mode',
@@ -68,12 +92,37 @@ while (<>) {
         my $new_gitdate = str2time($date);
         $current_gitdate_ymd = DateTime->from_epoch(epoch=>$new_gitdate)->ymd();
         $current_gitdate_iso = DateTime->from_epoch(epoch=>$new_gitdate)->iso8601();
-        print STDERR "Parsing output for $current_vers ($current_gitvers from $current_gitdate_iso) (file=$ARGV)\n";
+#        print STDERR "Parsing output for $current_vers ($current_gitvers from $current_gitdate_iso) (file=$ARGV)\n";
     }
 
     chomp;
 
-	if (/scaling factor: (\d*)/) {
+	if (my ($testing_verdate, $testing_vers) = /^Testing ([0-9]{4}-[0-9]{2}-[0-9]{2})-(.*)$/) {
+		if ($current_vers ne $testing_vers) {
+			die "mismatching version $testing_vers in $ARGV (Expecting $current_vers)";
+		}
+	}
+	elsif (/^Start Time: (.*)$/) {
+		$start_time = str2time($1);
+	} elsif (/^Linux ([^ ]*)/) {
+		$kernel_vers = $1;
+	} elsif (/^avg-cpu/) {
+		$read_iostat_cpu = 1;
+	} elsif ($read_iostat_cpu) {
+		$read_iostat_cpu = 0;
+		@iostat_cpu{qw(user nice system iowait steal idle)} = split;
+	} elsif (/^Device/) {
+		$read_iostat_io = 1;
+	} elsif ($read_iostat_io && /^(sd|md)/n) {
+		my ($drive, @stats) = split;
+		my %stats;
+		@stats{qw(rrqmps wrqmps rps wps rkbps wkbps avgrqsz avgqusz await r_await w_await svctm utilization)} = @stats;
+		@iostat_io{$drive} = \%stats;
+	} elsif ($read_iostat_io) {
+		$read_iostat_io = 0;
+	} elsif (/^End Time: (.*)$/) {
+		$end_time = str2time($1);
+	} elsif (/scaling factor: (\d*)/) {
 		$scaling_factor = $1;
 	} elsif (/query mode: ([a-z]*)/) {
 		$query_mode = $1;
@@ -93,7 +142,7 @@ while (<>) {
 
 } continue {
 
-	if (/^transaction type/ || eof) {
+	if (/^Testing/ || ( /^transaction type/ && defined $scaling_factor) || eof) {
 		# about to start a new test or reached the end of an input file
 		if (!defined $scaling_factor) {
 			# first test of a file
@@ -103,11 +152,21 @@ while (<>) {
 			local($^W) = 0;
 			warn "missing data (scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
 		} else {
+			if (%iostat_cpu) {
+				#print Dumper(\%iostat_cpu);
+			}
+			if (%iostat_io) {
+				#print Dumper(\%iostat_io);
+			}
+
 			print(join(",",
 					   $current_gitdate_ymd,
 					   $current_gitdate_iso,
 					   $current_testname,
-					   $current_time,
+					   (defined $start_time && defined $end_time) ? $end_time-$start_time : 'unknown',
+					   defined $start_time ? DateTime->from_epoch(epoch=>$start_time)->iso8601() : 'unknown',
+					   defined $end_time ? DateTime->from_epoch(epoch=>$end_time)->iso8601() : 'unknown',
+					   defined $kernel_vers ? $kernel_vers : 'unknown',
 					   $current_vers,
 					   $scaling_factor,
 					   $query_mode,
@@ -126,5 +185,16 @@ while (<>) {
 		undef $duration;
 		undef $ntransactions;
 		undef $tps;
+		%latency = ();
+		undef $start_time;
+		undef $kernel_vers;
+		if ($read_iostat_cpu or $read_iostat_io) {
+			warn "finished in midst of iostat output (read_iostat_cpu=$read_iostat_cpu read_iostat_io=$read_iostat_io)";
+		}
+		$read_iostat_cpu = 0;
+		$read_iostat_io = 0;
+		%iostat_cpu = ();
+		%iostat_io = ();
+		undef $end_time;
 	}
 }
