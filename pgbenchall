@@ -5,7 +5,8 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-shared_buffers=1048576
+shared_buffers=262144 # 2 GB (INT_MAX / block size)
+#shared_buffers=1048576 # 8 GB
 global_pgoptions="-c shared_buffers=$shared_buffers"
 
 locale=uk_UA.UTF-8
