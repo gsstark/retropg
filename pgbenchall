@@ -104,6 +104,8 @@ for ver in $RELS ; do
     if [[ -e /tmp/.s.PGSQL.5432 ]] ; then
 		stalepid=$(head -1 /tmp/.s.PGSQL.5432.lock)
 		staledir=$(tail -1 /tmp/.s.PGSQL.5432.lock)
+		echo stalepid=$stalepid
+		echo staledir=$staledir
 		if kill -0 stalepid; then
 			echo Process $stalepid for $staledir still running
 			exit 1
@@ -118,13 +120,15 @@ for ver in $RELS ; do
 		echo "Cleaning up stale /tmp/.s.PGSQL.5432.lock"
 		rm -f /tmp/.s.PGSQL.5432.lock
 		if [[ -r $staledir/postmaster.pid ]] ; then
+			cat $staledir/postmaster.pid
 			checkpid=$(head -1 $staledir/postmaster.pid)
+			echo checkpid=$checkpid
 			if [[ $checkpid != $stalepid ]] ; then
 				echo "Found mismatching pid in $staledir ($checkpid != $stalepid)"
 				exit 1
 			fi
 			read shmkey shmid <<<$(tail -1 $staledir/postmaster.pid)
-			if ipcs -m --id $y | grep nattch=0 > /dev/null ; then
+			if ipcs -m --id $shmid | grep nattch=0 > /dev/null ; then
 				echo "Cleaning up stale shared memory segment key=$shmkey id=$shmid"
 				ipcs -m $shmid
 				ipcrm -m $shmid
