@@ -44,7 +44,7 @@ for ver in $RELS ; do
 		average=$(( ( $now - $start ) / $N ))
 		remaining=$(( ( $NRELS - $N ) * $average ))
 		eta=$(( $now + $remaining ))
-		remaining_str="$( TZ=GMT LC_ALL=C date +%Hh%MM -d @$remaining )"
+		remaining_str="$( TZ=GMT LC_ALL=C date +'%-dd %-Hh %-Mm' -d @$remaining )"
 		eta_str="$( LC_ALL=C date -d @$eta )"
 	fi
 
