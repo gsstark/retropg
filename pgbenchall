@@ -5,7 +5,7 @@ set -e
 here="$(dirname "${BASH_SOURCE[0]}")"
 start="$(date +%s)"
 
-shared_buffers=262144 # 2 GB (INT_MAX / block size)
+shared_buffers=262143 # 2 GB (INT_MAX / block size)
 #shared_buffers=1048576 # 8 GB
 global_pgoptions="-c shared_buffers=$shared_buffers"
 
@@ -162,7 +162,7 @@ for ver in $RELS ; do
     trap "$bin/pg_ctl -D $db stop" EXIT
     $bin/pg_ctl -D $db -l $log -o "$pgoptions" start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db $pgoptions > $log 2>&1 &
     echo -n "Waiting for $rel to start up..."
-    for i in `seq 1 300` ; do
+    for i in `seq 1 120` ; do
 		sleep 1
     	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
 		echo -n .
@@ -172,6 +172,7 @@ for ver in $RELS ; do
     else
 		trap - EXIT
 		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $?
+		echo "Failed to start $rel... skipping"
 		continue
     fi
 
