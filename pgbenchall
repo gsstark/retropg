@@ -231,13 +231,15 @@ for ver in $RELS ; do
 	else
 
 
-		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null)"
-		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		sync
-		sleep 5
+		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null || echo $shared_buffers)"
 
 		sync
 		sleep 5
+		sync
+		sleep 5
+
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
+		$bin/pg_controldata $db > $d/before.controldata
 
 		echo -n "Running Benchmark on $rel..."
 
@@ -253,20 +255,22 @@ for ver in $RELS ; do
 		unset TIMEFORMAT
 		wait $iostatpid || echo iostat exited with status $?
 
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
+		$bin/pg_controldata $db > $d/after.controldata
+
+		echo "Control File Changes" >> $out
+		diff -u $d/before.controldata $d/after.controldata >> $out
+
 		echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
 		echo "========================================================================" >> $out
-
 	fi
 
 	echo -n "Shutting down server..."
-	# try to settle i/o down to avoid pg_ctl stop taking too long
-	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-	sync
-	sleep 5
-	
 	trap - EXIT
 	export PGCTLTIMEOUT=300
 	while [[ -e /tmp/.s.PGSQL.5432 ]] ; do
+		sync
+		sleep 1
 		$bin/pg_ctl -D $db stop -m fast || echo pg_ctl exited with status $? retrying
 	done
 done
