@@ -239,7 +239,7 @@ for ver in $RELS ; do
 		sleep 5
 
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		$bin/pg_controldata $db > $d/before.controldata
+		$bin/pg_controldata $db > $d/before.controldata 2>/dev/null || true
 
 		echo -n "Running Benchmark on $rel..."
 
@@ -256,10 +256,14 @@ for ver in $RELS ; do
 		wait $iostatpid || echo iostat exited with status $?
 
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		$bin/pg_controldata $db > $d/after.controldata
+		$bin/pg_controldata $db > $d/after.controldata 2>/dev/null || true
 
-		echo "Control File Changes" >> $out
-		diff -u $d/before.controldata $d/after.controldata >> $out
+		if [[ -s $d/before.controldata && -s $d/after.controldata ]] ; then
+			echo "Control File Changes" >> $out
+			diff -u $d/before.controldata $d/after.controldata >> $out
+		if [[ -e $bin/pg_controldata ]] ; then
+			echo "Control Files Missing!!!"
+		fi
 
 		echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
 		echo "========================================================================" >> $out
