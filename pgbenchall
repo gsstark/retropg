@@ -260,7 +260,7 @@ for ver in $RELS ; do
 
 		if [[ -s $d/before.controldata && -s $d/after.controldata ]] ; then
 			echo "Control File Changes" >> $out
-			diff -u $d/before.controldata $d/after.controldata >> $out
+			diff -u $d/before.controldata $d/after.controldata >> $out || true
 		elif [[ -e $bin/pg_controldata ]] ; then
 			echo "Control Files Missing!!!"
 		fi
