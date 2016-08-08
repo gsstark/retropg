@@ -26,6 +26,10 @@ my $read_iostat_cpu = 0;
 my $read_iostat_io = 0;
 my %iostat_cpu;
 my %iostat_io;
+my $checkpoint_lsn_before;
+my $checkpoint_lsn_after;
+my $checkpoint_xid_before;
+my $checkpoint_xid_after;
 my $end_time;
 
 my @SRCDIRS = ("/home/stark/src/postgres", 
@@ -138,6 +142,14 @@ while (<>) {
 		$tps = $1;
 	} elsif (/^ *([0-9.]*) +(.*)$/) {
 		$latency{$2} = $1;
+	} elsif (/^\-Latest checkpoint location: *([0-9A-F]*/[0-9A-F]*)$/ {
+		$checkpoint_lsn_before = $1;
+	} elsif (/^\+Latest checkpoint location: *([0-9A-F]*/[0-9A-F]*)$/ {
+		$checkpoint_lsn_after = $1;
+	} elsif (/^\-Latest checkpoint's NextXID: *([0-9]*/[0-9]*)$/ {
+		$checkpoint_xid_before = $1;
+	} elsif (/^\+Latest checkpoint's NextXID: *([0-9]*/[0-9]*)$/ {
+		$checkpoint_xid_after = $1;
 	}
 
 } continue {
@@ -158,6 +170,23 @@ while (<>) {
 			if (%iostat_io) {
 				#print Dumper(\%iostat_io);
 			}
+			my $checkpoint_lsn_diff;
+			if (defined $checkpoint_lsn_before && defined $checkpoint_lsn_after) {
+				$checkpoint_lsn_before =~ y,/,,d;
+				$checkpoint_lsn_after =~ y,/,,d;
+				$checkpoint_lsn_diff = hex($checkpoint_lsn_after) - hex($checkpoint_lsn_before);
+			} elsif (defined $checkpoint_lsn_before || defined $checkpoint_lsn_after) {
+				warn "got checkpoint_lsn before=$checkpoint_lsn_before after=$checkpoint_lsn_after";
+			}
+			my $checkpoint_xid_diff;
+			if (defined $checkpoint_xid_before && defined $checkpoint_xid_after) {
+				$checkpoint_xid_diff = int($checkpoint_xid_after) - int($checkpoint_xid_before);
+				if ($ntransaction - $checkpoint_xid_diff > 200) {
+					warn "ntransactions=$ntransactions checkpoint_xid_diff=$checkpoint_xid_diff";
+				}
+			} elsif (defined $checkpoint_xid_before || defined $checkpoint_xid_after) {
+				warn "got checkpoint_xid before=$checkpoint_xid_before after=$checkpoint_xid_after";
+			}
 
 			print(join(",",
 					   $current_gitdate_ymd,
@@ -174,7 +203,9 @@ while (<>) {
 					   $nthreads,
 					   $duration,
 					   $ntransactions,
-					   $tps),
+					   $tps,
+					   defined $checkpoint_lsn_diff ? $checkpoint_lsn_diff ? '',
+				  ),
 				  "\n");
 		}
 
@@ -195,6 +226,8 @@ while (<>) {
 		$read_iostat_io = 0;
 		%iostat_cpu = ();
 		%iostat_io = ();
+		undef $checkpoint_before;
+		undef $checkpoint_after;
 		undef $end_time;
 	}
 }
