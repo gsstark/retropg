@@ -147,9 +147,9 @@ while (<>) {
 		$checkpoint_lsn_before = $1;
 	} elsif (m,^\+Latest checkpoint location: *([0-9A-F]*/[0-9A-F]*)$,) {
 		$checkpoint_lsn_after = $1;
-	} elsif (m,^\-Latest checkpoint\'s NextXID: *0/([0-9]*)$,) {
+	} elsif (m,^\-Latest checkpoint\'s NextXID: *(?:0[:/])?([0-9]*)$,) {
 		$checkpoint_xid_before = $1;
-	} elsif (m,^\+Latest checkpoint\'s NextXID: *0/([0-9]*)$,) {
+	} elsif (m,^\+Latest checkpoint\'s NextXID: *(?:0[:/])?([0-9]*)$,) {
 		$checkpoint_xid_after = $1;
 	}
 
