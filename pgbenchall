@@ -82,6 +82,11 @@ for ver in $RELS ; do
   	echo "ETA:   	  	$eta_str"
     echo "========================================================================"
 
+	echo "========================================================================" >> $out
+	echo "Testing $rel"                                                             >> $out
+	echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
+	echo "Shared Buffers: $shared_buffers_setting"                                  >> $out
+
     if [ ! -d $db ] ; then
 		echo "Running initdb for $rel in $db"
 		initdbargs=""
@@ -201,11 +206,13 @@ for ver in $RELS ; do
 
     fi
 
+	echo -n "Verifying pgbench database for $scale on $rel..."
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
     accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
 	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
 	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+	echo done
 
 	if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 		echo -n "Initializing pgbench scale factor $scale on $rel..."
@@ -219,11 +226,13 @@ for ver in $RELS ; do
 		echo "========================================================================" >> $out
 	fi
 
+	echo -n "Verifying pgbench database for $scale on $rel..."
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
     accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
 	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
 	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+	echo done
 
 	if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 		echo "Found discrepancy in initialized database"
@@ -255,10 +264,6 @@ for ver in $RELS ; do
 
 		echo -n "Running Benchmark on $rel..."
 
-		echo "========================================================================" >> $out
-		echo "Testing $rel"                                                             >> $out
-		echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
-		echo "Shared Buffers: $shared_buffers_setting"                                  >> $out
 		# start iostat to run for $duration seconds and then print a single output
 		iostat -x -y $(( $duration + 30 )) 1 >> $out &
 		iostatpid=$!
