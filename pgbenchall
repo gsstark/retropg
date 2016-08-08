@@ -85,7 +85,6 @@ for ver in $RELS ; do
 	echo "========================================================================" >> $out
 	echo "Testing $rel"                                                             >> $out
 	echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
-	echo "Shared Buffers: $shared_buffers_setting"                                  >> $out
 
     if [ ! -d $db ] ; then
 		echo "Running initdb for $rel in $db"
@@ -206,6 +205,9 @@ for ver in $RELS ; do
 
     fi
 
+	shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null || echo $shared_buffers)"
+	echo "Shared Buffers: $shared_buffers_setting"                                  >> $out
+
 	echo -n "Verifying pgbench database for $scale on $rel..."
     branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
     tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
@@ -251,8 +253,6 @@ for ver in $RELS ; do
 				echo "total size before pgbench: $sum" >> $out
 			fi
 		done
-
-		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null || echo $shared_buffers)"
 
 		sync
 		sleep 5
