@@ -14,7 +14,8 @@ locale=uk_UA.UTF-8
 encoding=unicode
 wordlist=/usr/share/dict/ukrainian
 scale=300
-duration=900
+duration=60
+pgbenchoptions="-S -c 32 -j 4"
 
 pgbench=/usr/local/pgsql/bin/pgbench
 
@@ -260,7 +261,7 @@ for ver in $RELS ; do
 		iostat -x -y $(( $duration + 30 )) 1 >> $out &
 		iostatpid=$!
 		TIMEFORMAT=%0lR
-		time ( ( $pgbench -T $duration -r -c 32 -j 4 )  >>$out 2>&1 || echo pgbench exited with status $?)
+		time ( ( $pgbench -T $duration $pgbenchoptions -r )  >>$out 2>&1 || echo pgbench exited with status $?)
 		unset TIMEFORMAT
 		wait $iostatpid || echo iostat exited with status $?
 
