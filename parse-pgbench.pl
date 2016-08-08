@@ -181,7 +181,7 @@ while (<>) {
 			my $checkpoint_xid_diff;
 			if (defined $checkpoint_xid_before && defined $checkpoint_xid_after) {
 				$checkpoint_xid_diff = int($checkpoint_xid_after) - int($checkpoint_xid_before);
-				if ($ntransaction - $checkpoint_xid_diff > 200) {
+				if ($ntransactions - $checkpoint_xid_diff > 200) {
 					warn "ntransactions=$ntransactions checkpoint_xid_diff=$checkpoint_xid_diff";
 				}
 			} elsif (defined $checkpoint_xid_before || defined $checkpoint_xid_after) {
@@ -226,8 +226,10 @@ while (<>) {
 		$read_iostat_io = 0;
 		%iostat_cpu = ();
 		%iostat_io = ();
-		undef $checkpoint_before;
-		undef $checkpoint_after;
+		undef $checkpoint_lsn_before;
+		undef $checkpoint_lsn_after;
+		undef $checkpoint_xid_before;
+		undef $checkpoint_xid_after;
 		undef $end_time;
 	}
 }
