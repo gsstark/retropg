@@ -204,7 +204,7 @@ while (<>) {
 					   $duration,
 					   $ntransactions,
 					   $tps,
-					   defined $checkpoint_lsn_diff ? $checkpoint_lsn_diff ? '',
+					   defined $checkpoint_lsn_diff ? $checkpoint_lsn_diff : '',
 				  ),
 				  "\n");
 		}
