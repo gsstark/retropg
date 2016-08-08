@@ -232,14 +232,16 @@ for ver in $RELS ; do
 	else
 
 		# Measure file sizes for bloat stats
-		sum=0
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
-			size=$(du $db/base/${file}*  | awk 'END {print $1}')
-			echo "size before pgbench of $tab: $size" >> $out
-			sum=$(( $sum + $size ))
+			if [[ -n "$size" ]] ; then
+				size=$(du $db/base/${file}*  | awk 'END {print $1}')
+				echo "size before pgbench of $tab: $size" >> $out
+				sum=$(( $sum + $size ))
+			else
+				echo "total size before pgbench: $sum" >> $out
+			fi
 		done
-		echo "total size before pgbench: $sum" >> $out
 
 		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null || echo $shared_buffers)"
 
@@ -276,14 +278,16 @@ for ver in $RELS ; do
 		fi
 
 		# Measure file sizes for bloat stats
-		sum=0
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
-			size=$(du $db/base/${file}*  | awk 'END {print $1}')
-			echo "size after pgbench of $tab: $size" >> $out
-			sum=$(( $sum + $size ))
+			if [[ -n "$size" ]] ; then
+				size=$(du $db/base/${file}*  | awk 'END {print $1}')
+				echo "size after pgbench of $tab: $size" >> $out
+				sum=$(( $sum + $size ))
+			else
+				echo "total size after pgbench: $sum" >> $out
+			fi
 		done
-		echo "total size after pgbench: $sum" >> $out
 
 
 		echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
