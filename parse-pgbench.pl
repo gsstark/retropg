@@ -159,7 +159,7 @@ while (<>) {
 		if (!defined $scaling_factor) {
 			# first test of a file
 		} elsif (defined $ntransactions && $ntransactions == 0) {
-			warn "no transactions for test";
+			#warn "no transactions for test";
 		} elsif (!defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
 			local($^W) = 0;
 			warn "missing data (scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
