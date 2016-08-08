@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+no warnings 'portable';  # Support for 64-bit ints required
 
 use Date::Parse;
 use DateTime;
