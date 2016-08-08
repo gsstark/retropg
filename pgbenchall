@@ -230,6 +230,15 @@ for ver in $RELS ; do
 		echo "Skipping $rel due to failure to initialize pgbench"
 	else
 
+		# Measure file sizes for bloat stats
+		sum=0
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+			| while read tab x file; do
+			size=$(du $db/base/${file}*  | awk 'END {print $1}')
+			echo "size before pgbench of $tab: $size" >> $out
+			sum=$(( $sum + $size ))
+		done
+		echo "total size before pgbench: $sum" >> $out
 
 		shared_buffers_setting="$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select setting from pg_settings where name = 'shared_buffers'" 2>/dev/null || echo $shared_buffers)"
 
@@ -239,7 +248,7 @@ for ver in $RELS ; do
 		sleep 5
 
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		$bin/pg_controldata $db > $d/before.controldata 2>/dev/null || true
+		LC_ALL=C TZ=GMT $bin/pg_controldata $db > $d/before.controldata 2>/dev/null || true
 
 		echo -n "Running Benchmark on $rel..."
 
@@ -256,7 +265,7 @@ for ver in $RELS ; do
 		wait $iostatpid || echo iostat exited with status $?
 
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		$bin/pg_controldata $db > $d/after.controldata 2>/dev/null || true
+		LC_ALL=C TZ=GMT $bin/pg_controldata $db > $d/after.controldata 2>/dev/null || true
 
 		if [[ -s $d/before.controldata && -s $d/after.controldata ]] ; then
 			echo "Control File Changes" >> $out
@@ -264,6 +273,17 @@ for ver in $RELS ; do
 		elif [[ -e $bin/pg_controldata ]] ; then
 			echo "Control Files Missing!!!"
 		fi
+
+		# Measure file sizes for bloat stats
+		sum=0
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+			| while read tab x file; do
+			size=$(du $db/base/${file}*  | awk 'END {print $1}')
+			echo "size after pgbench of $tab: $size" >> $out
+			sum=$(( $sum + $size ))
+		done
+		echo "total size after pgbench: $sum" >> $out
+
 
 		echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
 		echo "========================================================================" >> $out
