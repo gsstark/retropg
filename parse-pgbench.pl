@@ -13,6 +13,7 @@ my $current_gitvers;
 my $current_gitdate_ymd;
 my $current_gitdate_iso;
 
+my $transaction_type;
 my $scaling_factor;
 my $query_mode;
 my $nclients;
@@ -107,6 +108,8 @@ while (<>) {
 			die "mismatching version $testing_vers in $ARGV (Expecting $current_vers)";
 		}
 	}
+	elsif (/^transaction type: (.*)$/) {
+		$transaction_type = $1;
 	elsif (/^Start Time: (.*)$/) {
 		$start_time = str2time($1);
 	} elsif (/^Linux ([^ ]*)/) {
@@ -161,7 +164,7 @@ while (<>) {
 			# first test of a file
 		} elsif (defined $ntransactions && $ntransactions == 0) {
 			#warn "no transactions for test";
-		} elsif (!defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
+		} elsif (!defined $transaction_type || !defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
 			local($^W) = 0;
 			warn "missing data (scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
 		} else {
@@ -193,6 +196,7 @@ while (<>) {
 					   $current_gitdate_ymd,
 					   $current_gitdate_iso,
 					   $current_testname,
+					   $transaction_type,
 					   (defined $start_time && defined $end_time) ? $end_time-$start_time : 'unknown',
 					   defined $start_time ? DateTime->from_epoch(epoch=>$start_time)->iso8601() : 'unknown',
 					   defined $end_time ? DateTime->from_epoch(epoch=>$end_time)->iso8601() : 'unknown',
@@ -210,6 +214,7 @@ while (<>) {
 				  "\n");
 		}
 
+		undef $transaction_type;
 		undef $scaling_factor;
 		undef $query_mode;
 		undef $nclients;
