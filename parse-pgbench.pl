@@ -185,9 +185,9 @@ while (<>) {
 			my $checkpoint_xid_diff;
 			if (defined $checkpoint_xid_before && defined $checkpoint_xid_after) {
 				$checkpoint_xid_diff = int($checkpoint_xid_after) - int($checkpoint_xid_before);
-				if ($ntransactions - $checkpoint_xid_diff > 200) {
-					warn "ntransactions=$ntransactions checkpoint_xid_diff=$checkpoint_xid_diff";
-				}
+#				if ($ntransactions - $checkpoint_xid_diff > 200) {
+#					warn "ntransactions=$ntransactions checkpoint_xid_diff=$checkpoint_xid_diff";
+#				}
 			} elsif (defined $checkpoint_xid_before || defined $checkpoint_xid_after) {
 				warn "got checkpoint_xid before=$checkpoint_xid_before after=$checkpoint_xid_after";
 			}
