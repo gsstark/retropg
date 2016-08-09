@@ -110,6 +110,7 @@ while (<>) {
 		}
 	}
 	elsif (/^transaction type: (.*)$/) {
+		print STDERR "XYZZY\n";
 		$transaction_type = $1;
 	} elsif (/^Start Time: (.*)$/) {
 		$start_time = str2time($1);
