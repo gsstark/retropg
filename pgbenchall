@@ -222,7 +222,7 @@ for ver in $RELS ; do
 		echo "Initializing $rel (scale $scale)"                                         >> $out
 		echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
 		TIMEFORMAT=%0lR
-		time ( ( $pgbench -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
+		time ( ( $pgbench -X -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
 		unset TIMEFORMAT
 		echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
 		echo "========================================================================" >> $out
