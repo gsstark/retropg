@@ -262,12 +262,11 @@ for ver in $RELS ; do
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
 		LC_ALL=C TZ=GMT $bin/pg_controldata $db > $d/before.controldata 2>/dev/null || true
 
-		echo -n "Running Benchmark on $rel..."
-
 		# start iostat to run for $duration seconds and then print a single output
 		iostat -x -y $(( $duration + 30 )) 1 >> $out &
 		iostatpid=$!
 		TIMEFORMAT=%0lR
+		echo -n "Running Benchmark on $rel..."
 		time ( ( $pgbench -T $duration $pgbenchoptions -r )  >>$out 2>&1 || echo pgbench exited with status $?)
 		unset TIMEFORMAT
 		wait $iostatpid || echo iostat exited with status $?
