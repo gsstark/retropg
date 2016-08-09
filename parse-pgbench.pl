@@ -110,7 +110,7 @@ while (<>) {
 	}
 	elsif (/^transaction type: (.*)$/) {
 		$transaction_type = $1;
-	elsif (/^Start Time: (.*)$/) {
+	} elsif (/^Start Time: (.*)$/) {
 		$start_time = str2time($1);
 	} elsif (/^Linux ([^ ]*)/) {
 		$kernel_vers = $1;
