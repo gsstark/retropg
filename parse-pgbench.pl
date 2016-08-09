@@ -47,6 +47,7 @@ print(join(",",
 		   'Release Date',
 		   'Release Timestamp',
 		   'Test Name',
+		   'Transaction Type',
 		   'Test Duration',
 		   'Test Start Time',
 		   'Test End Time',
@@ -166,7 +167,7 @@ while (<>) {
 			#warn "no transactions for test";
 		} elsif (!defined $transaction_type || !defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
 			local($^W) = 0;
-			warn "missing data (transaction_type=$transaction_type scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps)";
+			warn "missing data (transaction_type=$transaction_type scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps) for $ARGV:$.";
 		} else {
 			if (%iostat_cpu) {
 				#print Dumper(\%iostat_cpu);
