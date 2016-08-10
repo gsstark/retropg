@@ -14,6 +14,7 @@ my $current_gitdate_ymd;
 my $current_gitdate_iso;
 
 my $transaction_type;
+my $shared_buffers;
 my $scaling_factor;
 my $query_mode;
 my $nclients;
@@ -48,6 +49,7 @@ print(join(",",
 		   'Release Timestamp',
 		   'Test Name',
 		   'Transaction Type',
+		   'Shared Buffers',
 		   'Test Duration',
 		   'Test Start Time',
 		   'Test End Time',
@@ -110,8 +112,10 @@ while (<>) {
 		}
 	}
 	elsif (/^transaction type: (.*)$/) {
-		print STDERR "XYZZY\n";
+#		print STDERR "XYZZY\n";
 		$transaction_type = $1;
+	} elsif (/^Shared Buffers:  ([0-9]*)$/) {
+		$shared_buffers=$1;
 	} elsif (/^Start Time: (.*)$/) {
 		$start_time = str2time($1);
 	} elsif (/^Linux ([^ ]*)/) {
@@ -199,6 +203,7 @@ while (<>) {
 					   $current_gitdate_iso,
 					   $current_testname,
 					   $transaction_type,
+					   defined $shared_buffers ? $shared_buffers : 'unknown',
 					   (defined $start_time && defined $end_time) ? $end_time-$start_time : 'unknown',
 					   defined $start_time ? DateTime->from_epoch(epoch=>$start_time)->iso8601() : 'unknown',
 					   defined $end_time ? DateTime->from_epoch(epoch=>$end_time)->iso8601() : 'unknown',
@@ -217,6 +222,7 @@ while (<>) {
 		}
 
 		undef $transaction_type;
+		undef $shared_buffers;
 		undef $scaling_factor;
 		undef $query_mode;
 		undef $nclients;
