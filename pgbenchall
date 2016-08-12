@@ -15,7 +15,7 @@ encoding=unicode
 wordlist=/usr/share/dict/ukrainian
 scale=300
 duration=60
-pgbenchoptions="-S -c 32 -j 4"
+pgbenchoptions="-S -c 64 -j 4"
 
 pgbench=/usr/local/pgsql/bin/pgbench
 
