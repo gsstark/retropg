@@ -271,8 +271,11 @@ for ver in $RELS ; do
 		unset TIMEFORMAT
 		wait $iostatpid || echo iostat exited with status $?
 
-		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null
-		LC_ALL=C TZ=GMT $bin/pg_controldata $db > $d/after.controldata 2>/dev/null || true
+		if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c 'checkpoint' 2>/dev/null; then
+			LC_ALL=C TZ=GMT $bin/pg_controldata $db > $d/after.controldata 2>/dev/null || true
+		else
+			echo "Can't run checkpoint (psql exited with status $?). Did Postgres crash?" 
+		fi
 
 		if [[ -s $d/before.controldata && -s $d/after.controldata ]] ; then
 			echo "Control File Changes" >> $out
