@@ -243,7 +243,7 @@ for ver in $RELS ; do
 	else
 
 		# Measure file sizes for bloat stats
-		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
 			if [[ -n "$tab" ]] ; then
 				size=$(du $db/base/${file}*  | awk 'END {print $1}')
@@ -285,7 +285,7 @@ for ver in $RELS ; do
 		fi
 
 		# Measure file sizes for bloat stats
-		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
 			if [[ -n "$tab" ]] ; then
 				size=$(du $db/base/${file}*  | awk 'END {print $1}')
