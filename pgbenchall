@@ -14,7 +14,7 @@ locale=uk_UA.UTF-8
 encoding=unicode
 wordlist=/usr/share/dict/ukrainian
 scale=300
-duration=60
+duration=900
 pgbenchoptions="-c 32 -j 4"
 
 pgbench=/usr/local/pgsql/bin/pgbench
