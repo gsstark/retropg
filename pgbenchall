@@ -52,6 +52,11 @@ for ver in $RELS ; do
 
     N=$(( N + 1 ))
 
+	if [[ -e /tmp/pgbenchall-quit-now ]] ; then
+		echo Exiting due to /tmp/pgbenchall-quit-now
+		exit 1
+	fi
+
     if [[ ! -f $d/bin/initdb ]] ; then
 		echo
 		echo "========================================================================"
