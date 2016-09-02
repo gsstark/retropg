@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 no warnings 'portable';  # Support for 64-bit ints required
+no warnings 'uninitialized'; # XXX
 
 use Date::Parse;
 use DateTime;
@@ -14,6 +15,7 @@ my $current_gitdate_ymd;
 my $current_gitdate_iso;
 
 my $transaction_type;
+my $old_transaction_type;
 my $shared_buffers;
 my $scaling_factor;
 my $query_mode;
@@ -112,7 +114,7 @@ while (<>) {
 		}
 	}
 	elsif (/^transaction type: (.*)$/) {
-#		print STDERR "XYZZY\n";
+		$old_transaction_type=$transaction_type;
 		$transaction_type = $1;
 	} elsif (/^Shared Buffers:  ([0-9]*)$/) {
 		$shared_buffers=$1;
@@ -163,16 +165,30 @@ while (<>) {
 	}
 
 } continue {
+	# reset $.
+	close ARGV if eof;  # Not eof()!
 
 	if (/^Testing/ || ( /^transaction type/ && defined $scaling_factor) || eof) {
+
+		my $effective_transaction_type;
+		my $HACK_TP;
+		# Hack -- if we triggered on transaction type use the old one
+		if (/^transaction type/) {
+			$HACK_TP = 1;
+			$effective_transaction_type = $old_transaction_type;
+		} else {
+			$HACK_TP = 0;
+			$effective_transaction_type = $transaction_type;
+		}
+		
 		# about to start a new test or reached the end of an input file
 		if (!defined $scaling_factor) {
 			# first test of a file
 		} elsif (defined $ntransactions && $ntransactions == 0) {
 			#warn "no transactions for test";
-		} elsif (!defined $transaction_type || !defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
+		} elsif (!defined $effective_transaction_type || !defined $nclients || !defined $nthreads || !defined $duration || !defined $ntransactions || !defined $tps) {
 			local($^W) = 0;
-			warn "missing data (transaction_type=$transaction_type scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps) for $ARGV:$.";
+			warn "missing data (transaction_type=$effective_transaction_type scaling_factor=$scaling_factor query_mode=$query_mode nclients=$nclients nthreads=$nthreads duration=$duration ntransactions=$ntransactions tps=$tps) for $ARGV:$.";
 		} else {
 			if (%iostat_cpu) {
 				#print Dumper(\%iostat_cpu);
@@ -202,7 +218,7 @@ while (<>) {
 					   $current_gitdate_ymd,
 					   $current_gitdate_iso,
 					   $current_testname,
-					   $transaction_type,
+					   $effective_transaction_type,
 					   defined $shared_buffers ? $shared_buffers : 'unknown',
 					   (defined $start_time && defined $end_time) ? $end_time-$start_time : 'unknown',
 					   defined $start_time ? DateTime->from_epoch(epoch=>$start_time)->iso8601() : 'unknown',
@@ -221,7 +237,12 @@ while (<>) {
 				  "\n");
 		}
 
-		undef $transaction_type;
+		if (!$HACK_TP) {
+			undef $old_transaction_type;
+			undef $transaction_type;
+		} else {
+			undef $old_transaction_type;
+		}
 		undef $shared_buffers;
 		undef $scaling_factor;
 		undef $query_mode;
@@ -245,5 +266,6 @@ while (<>) {
 		undef $checkpoint_xid_before;
 		undef $checkpoint_xid_after;
 		undef $end_time;
+
 	}
 }

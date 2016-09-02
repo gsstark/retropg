@@ -117,7 +117,7 @@ for ver in $RELS ; do
 		staledir=$(tail -1 /tmp/.s.PGSQL.5432.lock)
 		echo stalepid=$stalepid
 		echo staledir=$staledir
-		if kill -0 stalepid; then
+		if kill -0 $stalepid; then
 			echo Process $stalepid for $staledir still running
 			exit 1
 		fi
@@ -251,7 +251,7 @@ for ver in $RELS ; do
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
 			if [[ -n "$tab" ]] ; then
-				size=$(du $db/base/${file}*  | awk 'END {print $1}')
+				size=$(du -kc $db/base/${file}*  | awk 'END {print $1}')
 				echo "size before pgbench of $tab: $size" >> $out
 				sum=$(( $sum + $size ))
 			else
@@ -293,7 +293,7 @@ for ver in $RELS ; do
 		PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 			| while read tab x file; do
 			if [[ -n "$tab" ]] ; then
-				size=$(du $db/base/${file}*  | awk 'END {print $1}')
+				size=$(du -kc $db/base/${file}*  | awk 'END {print $1}')
 				echo "size after pgbench of $tab: $size" >> $out
 				sum=$(( $sum + $size ))
 			else
