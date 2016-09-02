@@ -1,0 +1,247 @@
+#!/bin/bash
+
+set -e
+
+here="$(dirname "${BASH_SOURCE[0]}")"
+start="$(date +%s)"
+
+shared_buffers=260000 # 2031MB (leave room for additional shared memory)
+#shared_buffers=262143 # 2 GB (INT_MAX / block size)
+#shared_buffers=1048576 # 8 GB
+global_pgoptions="-c shared_buffers=$shared_buffers"
+
+locale=uk_UA.UTF-8
+encoding=unicode
+wordlist=/usr/share/dict/ukrainian
+# ???
+scale=2
+duration=$(( 7 * 24 * 60 * 60 ))
+pgbenchoptions="-c 8 -j 1"
+dbname="pgbench_$scale"
+MINPORT=5400
+
+# ???
+du_interval=60
+
+du_files=~/src/retropg/du.files
+du_out=~/src/retropg/du.out
+
+pgbench=/usr/local/pgsql/bin/pgbench
+
+export LC_ALL=$locale
+export LC_COLLATE=$LC_ALL
+export LC_CTYPE=$LC_ALL
+export LC_NUMERIC=C # c.f. REL7_3~975
+export LC_TIME=C
+export LC_MESSAGES=C
+
+# only major releases so exclude *~*
+RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed '/~/d;s,.*/[0-9]*-[0-9]*-[0-9]*-\([^/]*\)/bin/initdb,\1,' ; done | sort -R)"
+
+NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
+
+abort=0
+for s in /tmp/.s.PGSQL.*; do
+	if [[ -e $s ]] ; then
+		echo $s already exists
+		echo $s already exists 1>&2
+		abort=1
+	fi
+done
+if [[ $abort ]]; then
+   echo exiting 
+   echo exiting 1>&2
+   exit 1
+fi
+
+TESTDIR="/var/tmp/oldpgsql"
+if [[ ! -d $TESTDIR ]] ; then
+    mkdir $TESTDIR
+fi
+
+
+du_pid=""
+pgbench_pids=""
+function cleanup {
+    for pid in $pgbench_pids; do
+	kill $pid
+    done
+    if [[ -n $du_pid ]] ; then
+	kill $du_pid;
+    fi
+    for ver in $RELS; do
+	d="$(echo /usr/local/oldpgsql/*-$ver)"
+	rel="$(basename $d)"
+	bin="$d/bin"
+	db="$TESTDIR/d-$rel"
+	if [[ -e $db/postmaster.pid ]]; then
+	    $bin/pg_ctl -D $db stop -m fast || echo "$bin/pg_ctl exited with status $?"
+	fi
+    done
+}
+trap cleanup EXIT
+
+
+for ver in $RELS; do
+    d="$(echo /usr/local/oldpgsql/*-$ver)"
+    rel="$(basename $d)"
+    db="$TESTDIR/d-$rel"
+    if [[ ! -d $db ]]; then
+	echo "Didn't find $db directory"
+	exit 1;
+    fi
+    if [[ -e $db/postmaster.pid ]] ; then
+	echo "Found $db/postmaster.pid"
+	exit 1;
+    fi
+    if [[ ! -f $d/bin/initdb ]] ; then
+	echo "Didn't find $d/bin/initdb"
+	exit 1
+    fi
+done
+
+if [[ -e $du_files ]] ; then
+    echo "du_files=$du_files exists"
+    exit 1
+fi
+
+if [[ -e $du_out ]] ; then
+    echo "du_out=$du_out exists"
+    exit 1
+fi
+
+port=$MINPORT
+for ver in $RELS ; do
+    d="$(echo /usr/local/oldpgsql/*-$ver)"
+    rel="$(basename $d)"
+    db="$TESTDIR/d-$rel"
+    bin="$d/bin"
+    lib="$d/lib"
+
+    log="$TESTDIR/l-$rel.log"
+    out="$TESTDIR/o-$rel.out"
+    port=$(( $port + 1 ))
+
+    # start up
+    $bin/pg_ctl -D $db -l $log -o "$pgoptions -p $port" start || PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/postmaster -D $db $pgoptions -p $port > $log 2>&1 &
+    echo -n "Waiting for $rel to start up..."
+    for i in `seq 1 120` ; do
+	sleep 1
+    	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port -o /dev/null -X template1 -c 'select 1' 2>/dev/null && break
+	echo -n .
+    done
+    if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port -o /dev/null -X template1 -c 'select 1' ; then
+	echo done
+    else
+	echo "Failed to start $rel..."
+	exit 1
+    fi
+
+    # createdb dedicated database for this scale
+    if ! PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -o /dev/null -X -c 'select 1'; then
+	createdbargs=""
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--encoding' >/dev/null; then
+	    createdbargs="$createdbargs --encoding unicode"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--locale' >/dev/null; then
+	    createdbargs="$createdbargs --locale $locale"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--lc_collate' >/dev/null; then
+	    createdbargs="$createdbargs --lc_collate $locale"
+	fi
+	if PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb --help | grep -e '--lc_ctype' >/dev/null; then
+	    createdbargs="$createdbargs --lc_ctype $locale"
+	fi
+	echo "Running CREATEDB for $rel with -p $port $createdbargs $dbname"
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/createdb -p $port $createdbargs $dbname
+    fi
+    if ! PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -o /dev/null -X -c 'select 1'; then
+	echo "Could not connect to $rel -p $port $dbname"
+	exit 1
+    fi
+
+    # pgbench -i 
+    echo -n "Verifying pgbench database for $scale on $rel..."
+    branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
+    npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+    nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+    echo done
+    if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
+	echo -n "Initializing pgbench scale factor $scale on $rel..."
+	echo "========================================================================" >> $out
+	echo "Initializing $rel (scale $scale)"                                         >> $out
+	echo "Start Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                   >> $out
+	TIMEFORMAT=%0lR
+	time ( ( $pgbench -p $port $dbname -X -i -s $scale ) >>$out 2>&1 || echo pgbench exited with status $?)
+	unset TIMEFORMAT
+	echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
+	echo "========================================================================" >> $out
+
+	branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+	tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+	accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
+	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+	if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
+	    echo "Found discrepancy in initialized database"
+	    echo "rel=$rel port=$port"
+	    echo "branches=$branches accounts=$accounts tellers=$tellers npkey=$npkey nrels=$nrels"
+	    exit 1
+	fi
+    fi
+
+    # Get list of files to monitor
+    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+	| while read tab x file; do
+	if [[ -n "$tab" ]] ; then
+	    if [[ ! -e "$db/base/${file}" ]] ; then
+		echo "Didn't find $db/base/${file} for table $tab in $rel"
+		exit 1
+	    fi
+	    size=$(du -kc $db/base/${file}*  | awk 'END {print $1}')
+	    echo "Monitoring $rel $tab at $db/base/${file} initial size: $size"
+	    echo "$rel $port $tab $db/base/${file}" >> $du_files
+	fi
+    done
+done
+MAXPORT=$port
+
+echo "========================================================================"
+echo "All databases created and initialized for scale $scale"
+echo "========================================================================"
+
+n_du_files=$(wc -l $du_files)
+echo "Starting du monitoring of $n_du_files files to $du_out"
+while true ; do
+    oldrel=''
+    while read rel port tab prefix; do
+	if [[ $rel != $oldrel ]] ; then
+	    oldrel=$rel
+	    xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
+	fi
+	size=$(du -kc ${prefix}* | awk 'END {print $1}')
+	echo "$(date +%s) $rel $port $tab $prefix $xid $size" >> $du_out ;
+    done;
+    sleep $du_interval ;
+done  &
+du_pid=$!
+
+echo "Starting pgbench duration $duration for every instance"
+pgbench_pids=""
+for port in `seq $MINPORT $MAXPORT`; do
+    if [[ -e /tmp/.s.PGSQL.$port ]] ; then
+	pgbench -p $port -s $scale -T $duration $pgbenchoptions &
+	pgbench_pids="$pgbench_pids $!"
+    fi
+done
+
+
+
+
+echo
+echo "========================================================================"
+echo " All done "
+echo "========================================================================"
+
