@@ -194,6 +194,12 @@ for ver in $RELS ; do
 	fi
     fi
 
+	# We want to run without vacuuming so that we can get the right
+	# filenodes here so vacuum ourselves manually
+
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "truncate pgbench_history"
+	PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "vacuum analyze"
+
     # Get list of files to monitor
     PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = '$dbname') as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 	| while read tab x file; do
@@ -234,8 +240,9 @@ echo "Starting pgbench duration $duration for every instance"
 pgbench_pids=""
 for port in `seq $MINPORT $MAXPORT`; do
     if [[ -e /tmp/.s.PGSQL.$port ]] ; then
-	$pgbench -p $port -s $scale -T $duration $dbname $pgbenchoptions &
-	pgbench_pids="$pgbench_pids $!"
+		# -n to not vacuum. See above.
+		$pgbench -p $port -s $scale -T $duration -n $dbname $pgbenchoptions &
+		pgbench_pids="$pgbench_pids $!"
     fi
 done
 
