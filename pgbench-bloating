@@ -36,7 +36,7 @@ export LC_TIME=C
 export LC_MESSAGES=C
 
 # only major releases so exclude *~*
-RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed '/~/d;s,.*/[0-9]*-[0-9]*-[0-9]*-\([^/]*\)/bin/initdb,\1,' ; done | sort -R)"
+RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed '/~/d;/ALPHA/d;/BETA/d;/RC/d;s,.*/[0-9]*-[0-9]*-[0-9]*-\([^/]*\)/bin/initdb,\1,' ; done | sort -R)"
 
 NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
 
