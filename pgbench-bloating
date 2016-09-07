@@ -40,7 +40,7 @@ RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed '/~/d;s,
 
 NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
 
-abort=0
+abort=
 for s in /tmp/.s.PGSQL.*; do
 	if [[ -e $s ]] ; then
 		echo $s already exists
@@ -118,8 +118,8 @@ for ver in $RELS ; do
     bin="$d/bin"
     lib="$d/lib"
 
-    log="$TESTDIR/l-$rel.log"
-    out="$TESTDIR/o-$rel.out"
+    log="$TESTDIR/lb-$rel.log"
+    out="$TESTDIR/ob-$rel.out"
     port=$(( $port + 1 ))
 
     # start up
@@ -162,11 +162,11 @@ for ver in $RELS ; do
 
     # pgbench -i 
     echo -n "Verifying pgbench database for $scale on $rel..."
-    branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
-    tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
-    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
-    npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
-    nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+    branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+    tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+    accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
+    npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+    nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
     echo done
     if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 	echo -n "Initializing pgbench scale factor $scale on $rel..."
@@ -179,11 +179,11 @@ for ver in $RELS ; do
 	echo "End Time: $(LC_ALL=C TZ=GMT date --rfc-3339=seconds)"                     >> $out
 	echo "========================================================================" >> $out
 
-	branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
-	tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
-	accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $ $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
-	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
-	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $ $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
+	branches=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_branches' 2>/dev/null || echo 0)
+	tellers=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib  $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_tellers' 2>/dev/null || echo 0)
+	accounts=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c 'select count(*) from pgbench_accounts' 2>/dev/null || echo 0)
+	npkey=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%pkey'" 2>/dev/null || echo 0)
+	nrels=$(PATH=$bin:$PATH LD_LIBRARY_PATH=$lib    $bin/psql -p $port $dbname -t -X -c "select count(*) from pg_class where relname like 'pgbench%'" 2>/dev/null || echo 0)
 	if [[ $branches -ne $scale || $accounts -ne $(( $scale * 100000 )) || $tellers -ne $(( $scale * 10 )) || $npkey -ne 3 || $nrels -ne 7 ]] ; then
 	    echo "Found discrepancy in initialized database"
 	    echo "rel=$rel port=$port"
