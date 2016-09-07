@@ -48,6 +48,8 @@ fi
 du_pid=""
 pgbench_pids=""
 function cleanup {
+	echo "--------------------------------------------------------------------------------"
+	echo "Cleaning up"
     for pid in $pgbench_pids; do
 		kill $pid
     done
@@ -216,13 +218,13 @@ echo "Starting du monitoring of $n_du_files files to $du_out"
 while true ; do
     oldrel=''
     while read mon_rel mon_port mon_dbname mon_tab mon_db mon_prefix; do
-	if [[ $mon_rel != $oldrel ]] ; then
-	    oldrel=$mon_rel
-	    xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $mon_db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
-	fi
-	size=$(du -kc ${mon_db}/${mon_prefix}* | awk 'END {print $1}')
-	echo "$(date +%s) $mon_rel $mon_port $mon_dbname $mon_tab $mon_db $mon_prefix $xid $size" >> $du_out ;
-    done;
+		if [[ $mon_rel != $oldrel ]] ; then
+			oldrel=$mon_rel
+			xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $mon_db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
+		fi
+		size=$(du -kc ${mon_db}/${mon_prefix}* | awk 'END {print $1}')
+		echo "$(date +%s) $mon_rel $mon_port $mon_dbname $mon_tab $mon_db $mon_prefix $xid $size" >> $du_out ;
+    done < $du_files;
     sleep $du_interval ;
 done  &
 du_pid=$!
@@ -236,7 +238,8 @@ for port in `seq $MINPORT $MAXPORT`; do
     fi
 done
 
-
+# use wait somehow
+sleep $duration
 
 
 echo
