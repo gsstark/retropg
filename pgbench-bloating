@@ -232,7 +232,7 @@ echo "Starting pgbench duration $duration for every instance"
 pgbench_pids=""
 for port in `seq $MINPORT $MAXPORT`; do
     if [[ -e /tmp/.s.PGSQL.$port ]] ; then
-	pgbench -p $port -s $scale -T $duration $pgbenchoptions &
+	$pgbench -p $port -s $scale -T $duration $dbname $pgbenchoptions &
 	pgbench_pids="$pgbench_pids $!"
     fi
 done
