@@ -192,7 +192,7 @@ for ver in $RELS ; do
     fi
 
     # Get list of files to monitor
-    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_database()) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = '$dbname') as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 	| while read tab x file; do
 	if [[ -n "$tab" ]] ; then
 	    if [[ ! -e "$db/base/${file}" ]] ; then
