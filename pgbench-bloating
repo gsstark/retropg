@@ -193,7 +193,7 @@ for ver in $RELS ; do
     fi
 
     # Get list of files to monitor
-    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_user) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 	| while read tab x file; do
 	if [[ -n "$tab" ]] ; then
 	    if [[ ! -e "$db/base/${file}" ]] ; then
@@ -202,7 +202,7 @@ for ver in $RELS ; do
 	    fi
 	    size=$(du -kc $db/base/${file}*  | awk 'END {print $1}')
 	    echo "Monitoring $rel $tab at $db/base/${file} initial size: $size"
-	    echo "$rel $port $tab $db/base/${file}" >> $du_files
+	    echo "$rel $port $dbname $tab $db base/${file}" >> $du_files
 	fi
     done
 done
@@ -216,13 +216,13 @@ n_du_files=$(wc -l $du_files)
 echo "Starting du monitoring of $n_du_files files to $du_out"
 while true ; do
     oldrel=''
-    while read rel port tab prefix; do
-	if [[ $rel != $oldrel ]] ; then
-	    oldrel=$rel
-	    xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
+    while read mon_rel mon_port mon_dbname mon_tab mon_db mon_prefix; do
+	if [[ $mon_rel != $oldrel ]] ; then
+	    oldrel=$mon_rel
+	    xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $mon_db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
 	fi
-	size=$(du -kc ${prefix}* | awk 'END {print $1}')
-	echo "$(date +%s) $rel $port $tab $prefix $xid $size" >> $du_out ;
+	size=$(du -kc ${mon_db}/${mon_prefix}* | awk 'END {print $1}')
+	echo "$(date +%s) $mon_rel $mon_port $mon_dbname $mon_tab $mon_db $mon_prefix $xid $size" >> $du_out ;
     done;
     sleep $du_interval ;
 done  &
