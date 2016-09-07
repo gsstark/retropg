@@ -64,20 +64,20 @@ du_pid=""
 pgbench_pids=""
 function cleanup {
     for pid in $pgbench_pids; do
-	kill $pid
+		kill $pid
     done
     if [[ -n $du_pid ]] ; then
-	kill $du_pid;
+		kill $du_pid;
     fi
-	mv "$du_files" "${du_files}.`date`"
+	mv "$du_files" "${du_files}.`date`" || echo no du_files
     for ver in $RELS; do
-	d="$(echo /usr/local/oldpgsql/*-$ver)"
-	rel="$(basename $d)"
-	bin="$d/bin"
-	db="$TESTDIR/d-$rel"
-	if [[ -e $db/postmaster.pid ]]; then
-	    $bin/pg_ctl -D $db stop -m fast || echo "$bin/pg_ctl exited with status $?"
-	fi
+		d="$(echo /usr/local/oldpgsql/*-$ver)"
+		rel="$(basename $d)"
+		bin="$d/bin"
+		db="$TESTDIR/d-$rel"
+		if [[ -e $db/postmaster.pid ]]; then
+			$bin/pg_ctl -D $db stop -m fast || echo "$bin/pg_ctl exited with status $?"
+		fi
     done
 }
 trap cleanup EXIT
@@ -194,7 +194,7 @@ for ver in $RELS ; do
     fi
 
     # Get list of files to monitor
-    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_database) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
+    PATH=$bin:$PATH LD_LIBRARY_PATH=$lib $bin/psql -p $port $dbname -t -X -c "select relname,d||'/'||relfilenode::text from (select oid::text as d from pg_database where datname = current_database()) as x, (select relfilenode,relname from pg_class where relname like '%pgbench%') as y" \
 	| while read tab x file; do
 	if [[ -n "$tab" ]] ; then
 	    if [[ ! -e "$db/base/${file}" ]] ; then
