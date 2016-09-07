@@ -40,25 +40,10 @@ RELS="$(for v in /usr/local/oldpgsql/*/bin/initdb ; do echo "$v"  | sed '/~/d;/A
 
 NRELS="$(for v in $RELS; do echo "$v" ; done | wc -l)"
 
-abort=
-for s in /tmp/.s.PGSQL.*; do
-	if [[ -e $s ]] ; then
-		echo $s already exists
-		echo $s already exists 1>&2
-		abort=1
-	fi
-done
-if [[ $abort ]]; then
-   echo exiting 
-   echo exiting 1>&2
-   exit 1
-fi
-
 TESTDIR="/var/tmp/oldpgsql"
 if [[ ! -d $TESTDIR ]] ; then
     mkdir $TESTDIR
 fi
-
 
 du_pid=""
 pgbench_pids=""
@@ -82,6 +67,19 @@ function cleanup {
 }
 trap cleanup EXIT
 
+abort=
+for s in /tmp/.s.PGSQL.*; do
+	if [[ -e $s ]] ; then
+		echo $s already exists
+		echo $s already exists 1>&2
+		abort=1
+	fi
+done
+if [[ $abort ]]; then
+   echo exiting 
+   echo exiting 1>&2
+   exit 1
+fi
 
 for ver in $RELS; do
     d="$(echo /usr/local/oldpgsql/*-$ver)"
