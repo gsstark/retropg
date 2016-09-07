@@ -220,7 +220,7 @@ while true ; do
     while read mon_rel mon_port mon_dbname mon_tab mon_db mon_prefix; do
 		if [[ $mon_rel != $oldrel ]] ; then
 			oldrel=$mon_rel
-			xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $mon_db | sed "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//")
+			xid=$(LC_ALL=C TZ=GMT $bin/pg_controldata $mon_db | sed -n "/^Latest checkpoint's NextXID:/s/Latest checkpoint's NextXID: *//p")
 		fi
 		size=$(du -kc ${mon_db}/${mon_prefix}* | awk 'END {print $1}')
 		echo "$(date +%s) $mon_rel $mon_port $mon_dbname $mon_tab $mon_db $mon_prefix $xid $size" >> $du_out ;
