@@ -56,7 +56,7 @@ function cleanup {
     if [[ -n $du_pid ]] ; then
 		kill $du_pid;
     fi
-	mv "$du_files" "${du_files}.`date`" || echo no du_files
+	mv "$du_files" "${du_files}.`LC_ALL=C date`"  2>/dev/null || echo no du_files to clean up
     for ver in $RELS; do
 		d="$(echo /usr/local/oldpgsql/*-$ver)"
 		rel="$(basename $d)"
