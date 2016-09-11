@@ -1,4 +1,6 @@
 \documentclass[t,10pt]{beamer}
+%\includeonlyframes{testing}
+
 \usepackage{tikz,pgfplots,pgfplotstable,pgfcalendar}
 
 %\pgfplotstableset{col sep=comma}
@@ -8,9 +10,12 @@
 \pgfplotsset{compat=1.14}
 \usepgfplotslibrary{dateplot}
 \usepgfplotslibrary{units}
+\usepgfplotslibrary{colormaps}
+\usetikzlibrary{pgfplots.colormaps}
+\usepackage{fancybox}
 \usepackage{chronology}
 \tikzset{eventlabel/.append style={rotate=15}}
-\tikzset{every picture/.style={opacity=0.5}}
+%\tikzset{every picture/.style={opacity=0.5}}
 %\tikzset{chronevent/.append style={fill=darkred}}
 %\usepackage{verbatim}
 \usepackage{ifthen}
@@ -41,9 +46,9 @@
   \myevent{\decimaldate{4}{11}{1996}}{}%Postgres95 1.09}
   \myevent{\decimaldate{29}{1}{1997}}{6.0}
   \myevent{\decimaldate{8}{6}{1997}}{}%6.1}
-  \myevent{\decimaldate{2}{10}{1997}}{}%6.2}
+  \myevent{\decimaldate{2}{10}{1997}}{6.2}
   \myevent{\decimaldate{1}{3}{1998}}{6.3}
-  \myevent{\decimaldate{30}{10}{1998}}{}%6.4}
+  \myevent{\decimaldate{30}{10}{1998}}{6.4}
   \myevent{\decimaldate{9}{6}{1999}}{6.5}
   \myevent{\decimaldate{8}{5}{2000}}{7.0}
   \myevent{\decimaldate{13}{4}{2001}}{7.1}
@@ -63,6 +68,8 @@
   \myevent{\decimaldate{7}{1}{2016}}{9.5}
 \end{chronology}
 }{}
+
+\setbeamerfont{quotation}{size=\scriptsize,shape=\upshape,family=\ttfamily}
 
 \begin{document}
 
@@ -152,62 +159,186 @@
 %XYZZY% %\end{frame}
 %XYZZY% 
 
+\pgfplotstableread[col sep=comma,header=true]{pivot-table.csv}\spreadsheet
+
 \section{Experiments}
 \subsection{}
-\begin{frame}{Line Chart of pivot table}
-Here is a chart:
-
+\begin{frame}{Performance over time for various number of clients}
   \begin{tikzpicture}
   \begin{axis}[
-      height=.50\textheight,
-      width=.50\textwidth,
-      title=Performance over time for various number of clients,
+      height=.80\textheight,
+      width=.90\textwidth,
       xlabel=GIT Commit Date,
       ylabel=Transactions/s,
       grid=major,
       date coordinates in=x,
       mark size=0.25pt,
       scaled ticks=false,
+      colormap name=hot,
+      cycle list={[colors of colormap={0,70,...,1000}]},
+      enlargelimits=false,
+      ymin=0,ymax=100000,
       yticklabel style={
         /pgf/number format/fixed,
         font=\tiny,
       },
+      xtick={2000-01-01,2002-01-01,2004-01-01,2006-01-01,2008-01-01,2010-01-01,2012-01-01,2014-01-01,2016-01-01},
       xticklabel style={
-        rotate=-30,
-        anchor=west,
+        rotate=-15,
+        anchor=north west,
         %draw=black,
         font=\tiny,
       },
-      xticklabel={\year-\month-\day},
-      xmin=1995-01-01,
-      xmax=2017-01-01]
-    \addplot table[col sep=comma,header=true,x index=0,y=4] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=8] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=12] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=16] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=20] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=24] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=28] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=40] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=56] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=72] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=80] {pivot-table.csv};
-    \addplot table[col sep=comma,header=true,x index=0,y=88] {pivot-table.csv};
+      xticklabel={\year},
+      xmin=2002-01-01,
+      xmax=2017-01-01,
+      reverse legend, 
+      legend pos=north west,
+      %legend columns=8, transpose legend,
+      legend style={font=\tiny, line width=2pt, draw=none, row sep=-1pt},
+    ]
+    \pgfplotstableforeachcolumn\spreadsheet\as\col{%
+      \ifnum\pgfplotstablecol>0
+      \addplot table[col sep=comma,header=true,x index=0,y=\col]\spreadsheet;
+      \addlegendentryexpanded{\col}
+      \fi
+    }
   \end{axis}
 \end{tikzpicture}
-
-There was a chart
 \end{frame}
+
+\pgfplotstabletranspose[colnames from=date]\transposed\spreadsheet
+
+%\begin{frame}{Transposed Table}
+%\tiny
+%\pgfplotstabletypeset[]\transposed
+%\end{frame}
+
+%\pgfplotstablegetcolsof{\transposed}
+% colorbar,
+%      colorbar style={
+%        ytick={0,.08,...,.96},
+%        yticklabels={a,b,c,d,e,f,g,h,i,j,k,l},
+%      },
+
+\begin{frame}{Performance over number of clients for various releases}
+  \begin{tikzpicture}
+  \begin{axis}[
+      height=.80\textheight,
+      width=.80\textwidth,
+      xlabel=Clients,
+      ylabel=Transactions/s,
+      grid=major,
+      mark size=0.25pt,
+      scaled ticks=false,
+      colormap name=hot,
+%      cycle list={[colors of colormap={1000,993.75,...,0}]},
+      cycle list={[colors of colormap={0,5,...,1000}]},
+%      cycle list={[colors of colormap={0,30,...,1000}]},
+      colorbar,
+      colorbar style={
+        ytick={0,.15,.3,.5,.6,.8,.94},
+        yticklabels={7.2,8.0,8.2,8.4,9.0,9.2,9.5},
+      },
+      enlargelimits=false,
+      ymin=0,ymax=100000,
+      yticklabel style={
+        /pgf/number format/fixed,
+        font=\tiny,
+      },
+      xmin=0,xmax=96,
+      xtick={0,8,...,96},
+      xticklabel style={
+        font=\tiny,
+      },
+      ]
+    \pgfplotstableforeachcolumn\transposed\as\col{%
+      \ifnum\pgfplotstablecol>0
+      \addplot table[col sep=comma,header=true,x index=0,y=\col]\transposed;
+      \fi
+    }
+  \end{axis}
+\end{tikzpicture}
+\pgfplotstablegetcolsof{\transposed}
+%\scriptsize There are \pgfmathresult\ data series here, sorry if it's hard to interpret.
+\end{frame}
+
+%\begin{frame}{Line Chart of pivot table}
+%  Here is a chart:
+%  \pgfplotstabletranspose[colnames from={0}]\datatable\spreadsheet
+%
+%  \begin{tikzpicture}
+%  \begin{axis}[
+%      height=.70\textheight,
+%      width=.70\textwidth,
+%      title=Performance over number of clients for various releases,
+%      xlabel=Number of Clients,
+%      ylabel=Transactions/s,
+%      grid=major,
+%      mark size=0.25pt,
+%      scaled ticks=false,
+%      colormap name=viridis,
+%      cycle list={[colors of colormap={0,80,...,960}]},
+%      yticklabel style={
+%        /pgf/number format/fixed,
+%        font=\tiny,
+%      },
+%      xticklabel style={
+%        font=\tiny,
+%      },
+%      xmin=0,
+%      xmax=96]
+%    %\pgfplotstableforeachcolumnhtablei\as{h\macroi}{hcodei}
+%    \addplot table[col sep=comma,header=true,x index=0,y=4] {\datatable}
+%  \end{axis}
+%\end{tikzpicture}
+%
+%There was a chart
+%\end{frame}
 
 
 \section{In The Beginning}
+\subsection{POSTGRES Project at Berkeley}
+
+\begin{frame}[label=testing]{POSTGRES project at Berkeley}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=\textwidth,keepaspectratio=true]{assets/stonebraker-1995-berkeley.png}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{quotation}
+        \setlength{\parskip}{1em}
+        Dr. Stonebraker is Professor of Electrical Engineering and Computer
+        Sciences at the University of California at Berkeley, where he joined
+        the faculty in 1971. He is widely recognized as one of the world's
+        foremost experts in database technology and is noted for his insight
+        in operating systems and expert systems.
+
+        Dr. Stonebraker founded Ingres Corp. in 1980 and served on the
+        company's board of directors until 1993... INGRES, the company's
+        primary product, was a commercialization of Dr. Stonebraker's INGRES
+        research project into relational database management systems (RDBMS)
+        at Berkeley...
+
+        \alert<2>{
+          More recently, Dr. Stonebraker has managed another research project
+          known as POSTGRES, one of the most advanced such projects ever
+          undertaken on the Berkeley campus.
+        }
+
+        \tiny--- http://s2k-ftp.cs.berkeley.edu/nasa\_e2e/mike.html
+      \end{quotation}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \subsection{1.0}
 \begin{frame}{Postgres95 1.0}
   \begin{itemize}%[<+-| alert@+>]
-  \item The copyright of Postgres 1.0 has been loosened to be freely
-    modifiable and modifiable for any purpose.  Please read the
-    COPYRIGHT file.  Thanks to Professor Michael Stonebraker for making
-    this possible.
+  \item \alert<2>{The copyright of Postgres 1.0 has been loosened to
+    be freely modifiable and modifiable for any purpose.  Please read
+    the COPYRIGHT file.  Thanks to Professor Michael Stonebraker for
+    making this possible.}
   \item pg\_dump - a utility for dumping out a postgres database into
     a script file containing query commands. The script files are in
     an ASCII format and can be used to reconstruct the database, even
@@ -219,38 +350,104 @@ There was a chart
     `destroydb' remain the same.
   \end{itemize}
 \end{frame}
-\subsection{1.0}
+
+\subsection{6.0}
 \begin{frame}{PostgreSQL 6.0}
-  \begin{itemize}%[<+-| alert@+>]
-  \item Name change from Postgres95 to PostgreSQL
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=1.1\textwidth,keepaspectratio=true]{assets/Get_to_know_PostgreSQL-6-team}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{itemize}%[<+-| alert@+>]
+      \item Name change from Postgres95 to PostgreSQL
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
-\subsection{6.3}
+
+\subsection{6.2}
 \begin{frame}{PostgreSQL 6.2}
-  \begin{itemize}%[<+-| alert@+>]
-  \item The regression tests have been adapted and extensively modified for the 6.1 release of PostgreSQL.
-  \item Allow internal sorts to be stored in memory rather than in files (Bruce \& Vadim)
-  \item Triggers implemented with CREATE TRIGGER (SQL3)(Vadim)
-  \item SPI (Server Programming Interface) allows execution of queries inside C-functions (Vadim)
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=1.1\textwidth,keepaspectratio=true]{assets/Get_to_know_PostgreSQL-6-team}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{itemize}%[<+-| alert@+>]
+      \item Triggers implemented with CREATE TRIGGER
+      \item SPI (Server Programming Interface) allows execution of queries inside C-functions
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
+
+\subsection{6.3}
 \begin{frame}{PostgreSQL 6.3}
-  \begin{itemize}%[<+-| alert@+>]
-  \item Many new SQL features, including full SQL92 subselect capability (everything is here but target-list subselects).
-  \item New SQL statement CREATE PROCEDURAL LANGUAGE(Jan)
-  \item We also have real deadlock detection code. No more sixty-second timeouts.
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=1.1\textwidth,keepaspectratio=true]{assets/Get_to_know_PostgreSQL-6-team}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{itemize}%[<+-| alert@+>]
+      \item Many new SQL features, including full SQL92 subselect capability
+      \item New SQL statement CREATE PROCEDURAL LANGUAGE
+      \item We also have real deadlock detection code. No more sixty-second timeouts.
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
+
+\subsection{6.4}
+\begin{frame}{PostgreSQL 6.4}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=1.1\textwidth,keepaspectratio=true]{assets/history-007.png}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{itemize}%[<+-| alert@+>]
+      \item Views and rules are now functional thanks to extensive new code in the rewrite rules system
+      \item A second procedural language, PL/pgSQL, to go with the original PL/pgTCL procedural language
+      \item Multiple-byte character set support
+      \end{itemize}
+      Many new developers, Oleg Bartunov, Peter Eisentraut, Tatsuo Ishii, Magnus Hagandar, Tom Lane.
+
+      The release notes for 6.4 include over 180 items!
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \subsection{6.5}
 \begin{frame}{PostgreSQL 6.5}
-  \begin{itemize}%[<+-| alert@+>]
-  \item Multiversion concurrency control(MVCC)
-  \item Hot backups from pg\_dump
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{0.3\textwidth}
+      \includegraphics[width=1.1\textwidth,keepaspectratio=true]{assets/history-007.png}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{itemize}%[<+-| alert@+>]
+      \item Multiversion concurrency control(MVCC)
+      \item Hot backups from pg\_dump
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 
 \section{Early production use}
+
+\subsection{7.0}
+\begin{frame}{Early production use}
+  Major features are still lacking but it's reliable enough for users
+  to start running in production.
+
+  Features are added at a furious pace but you can clearly see the
+  divergence from MySQL and others where Postgres adds traditional
+  RDBMS management features and extensibility but focuses less on
+  overhead and resource usage.
+
+  TODO: add some relevant graphic
+\end{frame}
+  
+\end{frame}
+
 \subsection{7.0}
 \begin{frame}{PostgreSQL 7.0}
   \begin{itemize}%[<+-| alert@+>]
@@ -258,15 +455,17 @@ There was a chart
   \item SQL92 join syntax is now supported, though only as INNER JOIN for this release. 
   \end{itemize}
 \end{frame}
+
 \subsection{7.1}
 \begin{frame}{PostgreSQL 7.1}
   \begin{itemize}%[<+-| alert@+>]
   \item Write-ahead Log (WAL)
   \item TOAST
   \item Outer Joins
-  \item The previous C function manager did not handle null values properly, nor did it support 64-bit CPU's (Alpha)
+  \item \alert<2>{New C function manager adds support for NULLs and 64-bit CPUs (i.e. Alpha)}
   \end{itemize}
 \end{frame}
+
 \subsection{7.2}
 \begin{frame}{PostgreSQL 7.2}
   \begin{itemize}%[<+-| alert@+>]
@@ -276,13 +475,18 @@ There was a chart
   \item Program and library messages can now be displayed in several languages.
   \end{itemize}
 \end{frame}
+
 \subsection{7.3}
 \begin{frame}{PostgreSQL 7.3}
   \begin{itemize}%[<+-| alert@+>]
-  \item PostgreSQL now supports the ALTER TABLE ... DROP COLUMN functionality.
+  \item Functions and procedural languages now have privileges, and functions can be defined to run with the privileges of their creator.
+  \item Prepared queries
+  \item Object dependencies; DROP statements now take either CASCADE or RESTRICT to control whether dependent objects are also dropped.
+  \item ALTER TABLE ... DROP COLUMN
   \item Both multibyte and locale support are now always enabled.
   \end{itemize}
 \end{frame}
+
 \subsection{7.4}
 \begin{frame}{PostgreSQL 7.4}
   \begin{itemize}%[<+-| alert@+>]
@@ -293,17 +497,28 @@ There was a chart
   \end{itemize}
 \end{frame}
 
-
 \section{Scaling up}
 \subsection{8.0}
+
+\begin{frame}{Scaling Up}
+  Users running Postgres in production start running into previously
+  unseen problems due to their database size, transaction rate, and
+  24x7 operational needs.
+
+  \includegraphics[width=\textwidth,keepaspectratio=true]{assets/exponential-growth.png}
+
+  TODO: Need a more relevant graphic
+\end{frame}
+
 \begin{frame}{PostgreSQL 8.0}
   \begin{itemize}%[<+-| alert@+>]
   \item Microsoft Windows Native Server
-  \item Point-In-Time Recovery
+  \item \alert<2>{Hot Backups and Point-In-Time Recovery}
   \item Tablespaces
   \item Savepoints
   \end{itemize}
 \end{frame}
+
 \subsection{8.1}
 \begin{frame}{PostgreSQL 8.1}
   \begin{itemize}%[<+-| alert@+>]
@@ -313,7 +528,11 @@ There was a chart
   \item Skip WAL logging for CREATE TABLE AS / SELECT INTO (Simon)
   \end{itemize}
 \end{frame}
+
 \subsection{8.2}
+\begin{frame}{PostgreSQL Anniversary Meeting 2006}
+  \includegraphics[width=\textwidth,keepaspectratio=true]{assets/2006-anniversary-group-oleg.jpg}
+\end{frame}
 \begin{frame}{PostgreSQL 8.2}
   \begin{itemize}%[<+-| alert@+>]
   \item Index creation without blocking concurrent INSERT/UPDATE/DELETE operations
@@ -344,11 +563,14 @@ There was a chart
       scaled ticks=false,
       xmin=0,ymin=0,
       enlargelimits=false,
+      colormap name=hot,
+      cycle list={[colors of colormap={0,80,...,960}]},
       yticklabel style={
         /pgf/number format/fixed,
         font=\tiny,
       },
-      xtick distance=1,
+      xtick distance=6,
+      minor x tick num=5,
       xticklabel style={
         /pgf/number format/fixed,
         font=\tiny,

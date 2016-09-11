@@ -1,0 +1,158 @@
+\documentclass[t,10pt]{beamer}
+\usepackage[latin1]{inputenc}
+\usepackage{tikz,pgfplots,pgfplotstable,pgfcalendar}
+
+%\pgfplotstableset{col sep=comma}
+
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\tikzset{>={Latex[width=7pt,length=7pt]}}
+\pgfplotsset{compat=1.14}
+\usepgfplotslibrary{dateplot}
+\usepackage{ifthen}
+\usetheme{CambridgeUS}
+\usefonttheme{serif}
+\title{A look At The Elephant's Tail}
+\author{Gregory Stark}
+\date{September 14th 2016}
+
+\tikzset{
+  timelineyear/.style={font=\tiny,anchor=north west,inner sep=0pt},
+  timeline/.style={opacity=0.6},
+  timelineticks/.style={timeline},
+  timelineyearticks/.style={timelineticks},
+  timelinereleaseticks/.style={timelineticks},
+  release/.style={draw=none,opacity=1,inner sep=0,rotate=30,anchor=south west},
+  currentrelease/.style={release,color=darkred,font=\large},
+}
+
+\newlength{\xshift}
+\newlength{\unit}
+\def\date#1{\xdate#1\relax}
+\def\xdate#1-#2-#3\relax{(#3-1)/31/12+(#2-1)/12+#1}
+\def\release#1#2{
+  \pgfmathsetlength\xshift{(\date{#1}-1995)*\unit}
+  \draw[timelinereleaseticks] (\xshift,0) -- (\xshift,2ex);
+  \ifthenelse{\NOT\equal{\subsecname}{}\AND\equal{\subsecname}{#2}}{
+    \node[currentrelease] (#2) at (\xshift,2ex) {#2};
+    \node[release,opacity=0] (#2) at (\xshift,2ex) {#2};
+  }{
+    \node[currentrelease,opacity=0] (#2) at (\xshift,2ex) {#2};
+    \node[release] (#2) at (\xshift,2ex) {#2};
+  }
+}
+
+\setbeamertemplate{footline}{
+  \pgfmathsetlength{\unit}{\textwidth/(2016-1995+2)}
+  \begin{tikzpicture}
+    \coordinate (left) at (0,0);
+    \coordinate (right) at (\textwidth,0);
+    \draw[timeline] [|->] (left) -- (right);
+    \foreach \year in {1995,...,2016}{
+ 	  \pgfmathsetlength\xshift{(\year-1995)*\unit}
+      \node[timelineyear] (\year) at (\xshift,-2ex) {\year};
+      \draw[timelineyearticks] (\xshift,-2ex) -- (\xshift,0);
+    }
+  \release{1995-5-1}{}%Postgres95 0.1}
+  \release{1995-5-25}{}%Postgres95 0.2}
+  \release{1995-7-21}{}%Postgres95 0.3}
+  \release{1995-9-5}{1.0}
+  \release{1996-2-23}{}%Postgres95 1.01}
+  \release{1996-8-1}{}%Postgres95 1.02}
+  \release{1996-11-4}{}%Postgres95 1.09}
+  \release{1997-1-29}{6.0}
+  \release{1997-6-8}{}%6.1}
+  \release{1997-10-2}{}%6.2}
+  \release{1998-3-1}{6.3}
+  \release{1998-10-30}{}%6.4}
+  \release{1999-6-9}{6.5}
+  \release{2000-5-8}{7.0}
+  \release{2001-4-13}{7.1}
+  \release{2002-2-4}{7.2}
+  \release{2002-11-27}{7.3}
+  \release{2003-11-17}{7.4}
+  \release{2005-1-19}{8.0}
+  \release{2005-11-8}{8.1}
+  \release{2006-12-5}{8.2}
+  \release{2008-2-4}{8.3}
+  \release{2009-7-1}{8.4}
+  \release{2010-9-20}{9.0}
+  \release{2011-9-12}{9.1}
+  \release{2012-9-10}{9.2}
+  \release{2013-9-9}{9.3}
+  \release{2014-12-18}{9.4}
+  \release{2016-1-7}{9.5}
+  \end{tikzpicture}
+  
+  \vbox to 1ex{}
+}{}
+
+\begin{document}
+\section{Experiments}
+\subsection{7.0}
+\begin{frame}
+7.0 test
+\end{frame}
+\subsection{8.0}
+\begin{frame}
+8.0 test
+\end{frame}
+\end{document}
+
+% \def\chronology@iii*[#1]#2#3#4[#5]{%
+% 	\newif\ifflipped%
+% 	\ifchronology@star%
+% 		\flippedtrue%
+% 	\else%
+% 		\flippedfalse%
+% 	\fi%
+% 	\setcounter{step}{#1}%
+% 	\setcounter{yearstart}{#2}\setcounter{yearstop}{#3}%
+% 	\setcounter{deltayears}{\theyearstop-\theyearstart}%
+% 	\setlength{\unit}{#5/\thedeltayears}%
+% 	\setlength{\timelinewidth}{#4}%
+% 	\pgfmathsetcounter{stepstart}{\theyearstart+\thestep-mod(\theyearstart,\thestep)}%
+% 	\pgfmathsetcounter{stepstop}{\theyearstop-mod(\theyearstop,\thestep)}%
+% 	\addtocounter{step}{\thestepstart}%
+% 	\begin{lrbox}{\timelinebox}%
+% 		\begin{tikzpicture}[baseline={(current bounding box.north)}]%
+% 			\draw [|->] (0,0) -- (\thedeltayears*\unit+\unit, 0);%
+% 			\foreach \x in {1,...,\thedeltayears}%
+% 				\draw[xshift=\x*\unit] (0,-.1\unit) -- (0,.1\unit);%
+% 			\addtocounter{deltayears}{1}%
+% 			\foreach \x in {\thestepstart,\thestep,...,\thestepstop}{%
+% 				\pgfmathsetlength\xstop{(\x-\theyearstart)*\unit}%
+% 				\draw[xshift=\xstop] (0,-.3\unit) -- (0,.3\unit);%
+% 				\ifflipped%
+% 					\node[chrontickslabel] at (\xstop,0) [above=.2\unit] {\x};%
+% 				\else%
+% 					\node[chrontickslabel] at (\xstop,0) [below=.2\unit] {\x};%
+% 				\fi%
+% 			}%
+% }%
+% \makeatother%
+% \DeclareDocumentCommand \event {o m m}{%
+% 	\pgfmathsetlength\xstop{(#2-\theyearstart)*\unit}%
+% 	\IfNoValueTF {#1} {%
+% 		\ifflipped%
+% 			\draw[chronevent]%
+% 			(\xstop, 0) circle (.2\unit)%
+% 			node[flippedeventlabel] {#3};%
+% 		\else%
+% 			\draw[chronevent]%
+% 			(\xstop, 0) circle (.2\unit)%
+% 			node[eventlabel] {#3};%
+% 		\fi%
+% 	}{%
+% 		\pgfmathsetlength\xstart{(#1-\theyearstart)*\unit}%
+% 		\ifflipped%
+% 			\draw[chronevent,rounded corners=.2\unit]%
+% 			(\xstart,-.2\unit) rectangle%
+% 			node[flippedeventlabel] {#3} (\xstop,.2\unit);%
+% 		\else%
+% 			\draw[chronevent,rounded corners=.2\unit]%
+% 			(\xstart,-.2\unit) rectangle%
+% 			node[eventlabel] {#3} (\xstop,.2\unit);%
+% 		\fi%
+% 	}%
+% }
